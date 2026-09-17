@@ -108,3 +108,29 @@ def generate_test_from_image(uploaded_file):
         ]
     })
     return result["messages"][-1].content
+
+def generate_flashcards_from_image(uploaded_file):
+    extracted_text = load_image(uploaded_file)
+    print("hello")
+    result = main_agent.invoke({
+        "messages": [
+            {
+                "role": "user",
+                "content": "Generate a flashcard set from these notes:\n\n" + extracted_text,
+            }
+        ]
+    })
+    return result["messages"][-1].content
+
+def generate_notes_from_image(uploaded_file):
+    extracted_text = load_image(uploaded_file)
+    print("hello")
+    result = main_agent.invoke({
+        "messages": [
+            {
+                "role": "user",
+                "content": "Generate a comprehensive note guide set from these notes:\n\n" + extracted_text,
+            }
+        ]
+    })
+    return result["messages"][-1].content
