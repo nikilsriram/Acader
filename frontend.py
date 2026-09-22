@@ -1,5 +1,6 @@
 import streamlit as st
 from main import generate_test_from_image, generate_flashcards_from_image, generate_notes_from_image
+from flashcards import show_my_flashcards
 
 st.title("Acader")
 
@@ -40,7 +41,11 @@ if uploaded_file:
 
     if st.button("Generate Flashcards using Uploaded File"):
         result = generate_flashcards_from_image(uploaded_file)
-        st.write(result)
+
+        st.session_state.flashcards = result
+
+        st.success("Flashcards generated!")
+
 
     if st.button("Generate Comprehensive Review Notes using Photo"):
                 result = generate_notes_from_image(uploaded_file)

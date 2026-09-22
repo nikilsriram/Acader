@@ -1,8 +1,10 @@
 import streamlit as st
 
 pg = st.navigation([
-    st.Page("frontend.py", title="Home"),
+    st.Page("layout.py", title="Layout"),
+    st.Page("frontend.py", title="Home", url_path="/frontend"),
     st.Page("output.py", title="Test"),
+    st.Page("flashcards.py", title="Flashcards", url_path="/flashcars")
 ])
 
 pg.run()

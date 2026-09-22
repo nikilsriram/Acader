@@ -120,7 +120,8 @@ def generate_flashcards_from_image(uploaded_file):
             }
         ]
     })
-    return result["messages"][-1].content
+    flashcards = result.json()
+    return flashcards
 
 def generate_notes_from_image(uploaded_file):
     extracted_text = load_image(uploaded_file)
