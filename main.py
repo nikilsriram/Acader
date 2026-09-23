@@ -1,6 +1,7 @@
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -41,23 +42,20 @@ def generate_test(query: str):
 # Wrap it as a tool  
 @tool("generate_flashcards", description="""You are a flashcard-generation specialist.
 
-When given study notes, you MUST generate the actual flashcards.
-Do not describe or summarize the flashcards.
+When given study notes, generate 20 flashcards.
 
-Output complete flashcards that the student can study from.
-Include:
+Return ONLY valid JSON in this exact format:
+{
+    "Question 1": "Answer 1",
+    "Question 2": "Answer 2",
+    "Question 3": "Answer 3"
+}
 
-* 20 flashcards
-* A clear question or term on the front
-* A concise, accurate answer on the back
-* Cover the most important concepts from the provided notes
-* Avoid duplicate or overly similar flashcards
-
-Do not provide additional explanations unless explicitly requested.
+Do not include markdown, explanations, or any text outside the JSON.
 """)
 def generate_flashcards(query: str):
     result = subagent.invoke({"messages": [{"role": "user", "content": query}]})
-    return result["messages"][-1].content
+    return json.loads(result["messages"][-1].content)
 
 
 # Wrap it as a tool  
@@ -112,6 +110,7 @@ def generate_test_from_image(uploaded_file):
 def generate_flashcards_from_image(uploaded_file):
     extracted_text = load_image(uploaded_file)
     print("hello")
+
     result = main_agent.invoke({
         "messages": [
             {
@@ -120,8 +119,8 @@ def generate_flashcards_from_image(uploaded_file):
             }
         ]
     })
-    flashcards = result.json()
-    return flashcards
+
+    return json.loads(result["messages"][-1].content)
 
 def generate_notes_from_image(uploaded_file):
     extracted_text = load_image(uploaded_file)
