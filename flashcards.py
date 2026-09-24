@@ -54,127 +54,164 @@ def show_my_flashcards(data):
 
     <meta charset="UTF-8">
 
-    <style>
+<style>
 
-        body {
-            font-family: sans-serif;
+    body {
+        font-family: 'Inter', sans-serif;
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-            min-height: 100vh;
+        min-height: 100vh;
 
-            background: linear-gradient(
-                135deg,
-                #f5a623,
-                #f29d77
-            );
+        background-color: black;
 
-            margin: 0;
-        }
+        margin: 0;
+        color: white;
+    }
 
 
-        .flashcard-container {
+    .flashcard-container {
 
-            text-align: center;
+        text-align: center;
 
-            background-color: white;
+        background-color: #161616;
 
-            padding: 30px;
+        padding: 30px;
 
-            border-radius: 20px;
+        border-radius: 20px;
 
-            box-shadow:
-                0 0 15px rgba(0, 0, 0, 0.2);
+        box-shadow:
+            0 0 25px rgba(183, 75, 75, 0.25);
 
-            width: 320px;
-        }
+        width: 320px;
 
-
-        .flashcard {
-
-            width: 100%;
-            height: 180px;
-
-            position: relative;
-
-            transform-style: preserve-3d;
-
-            transition: transform 0.6s;
-
-            margin: 20px auto;
-        }
+        border: 1px solid #b74b4b;
+    }
 
 
-        .flashcard.is-flipped {
+    .flashcard-container h1 {
 
-            transform: rotateY(180deg);
-        }
+        color: white;
 
+        font-size: 2rem;
 
-        .flashcard div {
-
-            position: absolute;
-
-            width: 100%;
-            height: 100%;
-
-            backface-visibility: hidden;
-
-            border-radius: 15px;
-
-            background: linear-gradient(
-                135deg,
-                #f5f7fa,
-                #c3cfe2
-            );
-
-            display: flex;
-
-            justify-content: center;
-            align-items: center;
-
-            padding: 20px;
-
-            box-sizing: border-box;
-
-            font-size: 1.1em;
-        }
+        margin-bottom: 10px;
+    }
 
 
-        .back {
+    .flashcard {
 
-            transform: rotateY(180deg);
-        }
+        width: 100%;
+        height: 180px;
 
+        position: relative;
 
-        button {
+        transform-style: preserve-3d;
 
-            margin: 5px;
+        transition: transform 0.6s;
 
-            padding: 10px 20px;
-
-            border: none;
-
-            border-radius: 25px;
-
-            background-color: #ff5722;
-
-            color: white;
-
-            font-size: 1rem;
-
-            cursor: pointer;
-        }
+        margin: 20px auto;
+    }
 
 
-        button:hover {
+    .flashcard.is-flipped {
 
-            background-color: #e64a19;
-        }
+        transform: rotateY(180deg);
+    }
 
-    </style>
+
+    .flashcard div {
+
+        position: absolute;
+
+        width: 100%;
+        height: 100%;
+
+        backface-visibility: hidden;
+
+        border-radius: 15px;
+
+        background-color: #1f1f1f;
+
+        border: 2px solid #b74b4b;
+
+        display: flex;
+
+        justify-content: center;
+        align-items: center;
+
+        padding: 20px;
+
+        box-sizing: border-box;
+
+        font-size: 1.1em;
+
+        color: white;
+
+        box-shadow:
+            0 0 15px rgba(183, 75, 75, 0.15);
+    }
+
+
+    .front {
+
+        color: white;
+    }
+
+
+    .back {
+
+        transform: rotateY(180deg);
+
+        background-color: #b74b4b !important;
+
+        color: black !important;
+
+        border-color: #b74b4b !important;
+    }
+
+
+    button {
+
+        margin: 5px;
+
+        padding: 10px 20px;
+
+        border: 2px solid #b74b4b;
+
+        border-radius: 25px;
+
+        background-color: black;
+
+        color: #b74b4b;
+
+        font-size: 1rem;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.3s ease;
+    }
+
+
+    button:hover {
+
+        background-color: #b74b4b;
+
+        color: black;
+
+        transform: scale(1.05);
+
+        box-shadow:
+            0 0 15px rgba(183, 75, 75, 0.5);
+    }
+
+
+</style>
+
 
 </head>
 
@@ -338,3 +375,10 @@ if "flashcards" in st.session_state:
     show_my_flashcards(
         st.session_state.flashcards
     )
+
+if "flashcards" in st.session_state:
+    st.write("Flashcards found!")
+    st.write(st.session_state.flashcards)
+    show_my_flashcards(st.session_state.flashcards)
+else:
+    st.write("NO FLASHCARDS IN SESSION STATE")
