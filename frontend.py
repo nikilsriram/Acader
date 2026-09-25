@@ -317,7 +317,9 @@ if uploaded_file:
 
             result = generate_test_from_image(uploaded_file)
 
-            st.write(result)
+            st.session_state.test = result
+
+            st.write("Success")
 
     with flashcard_col:
 

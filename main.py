@@ -24,16 +24,60 @@ subagent = create_agent(model="openrouter:anthropic/claude-sonnet-4-6", tools=[]
 # Wrap it as a tool  
 @tool("generate_test", description="""You are a test-generation specialist.
 
-When given study notes, you MUST generate the actual test.
+When given study notes, generate the actual test.
 Do not describe or summarize the test.
 
-Output the complete questions that the student will answer.
-Include:
+Generate:
 - 10 multiple-choice questions
 - 5 true/false questions
 - 5 short-answer questions
 
-Do not provide the answers unless explicitly requested.
+For each multiple-choice question:
+- Provide exactly 4 answer choices.
+- One choice must be correct.
+- The other 3 choices must be incorrect but plausible distractors.
+- Do not make the correct answer obviously longer, shorter, or more detailed than the distractors.
+- Do not reveal which choice is correct.
+
+For true/false questions:
+- Provide only the statement.
+- Do not reveal whether it is true or false.
+
+For short-answer questions:
+- Provide only the question.
+- Do not provide the answer.
+
+Return ONLY valid JSON in this exact structure:
+
+{
+    "multiple_choice": [
+        {
+            "question": "Question text",
+            "choices": [
+                "Choice A",
+                "Choice B",
+                "Choice C",
+                "Choice D"
+            ]
+        }
+    ],
+    "true_false": [
+        {
+            "question": "Statement"
+        }
+    ],
+    "short_answer": [
+        {
+            "question": "Question text"
+        }
+    ]
+}
+
+The JSON must contain exactly 10 multiple-choice questions, 5 true/false questions, and 5 short-answer questions.
+
+Base all questions only on the provided study notes.
+Do not add unsupported information.
+Do not include markdown or any text outside the JSON.
 """)
 def generate_test(query: str):
     result = subagent.invoke({"messages": [{"role": "user", "content": query}]})
@@ -105,7 +149,7 @@ def generate_test_from_image(uploaded_file):
             }
         ]
     })
-    return result["messages"][-1].content
+    return json.loads(result["messages"][-1].content)
 
 def generate_flashcards_from_image(uploaded_file):
     extracted_text = load_image(uploaded_file)

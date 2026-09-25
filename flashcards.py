@@ -375,10 +375,3 @@ if "flashcards" in st.session_state:
     show_my_flashcards(
         st.session_state.flashcards
     )
-
-if "flashcards" in st.session_state:
-    st.write("Flashcards found!")
-    st.write(st.session_state.flashcards)
-    show_my_flashcards(st.session_state.flashcards)
-else:
-    st.write("NO FLASHCARDS IN SESSION STATE")
