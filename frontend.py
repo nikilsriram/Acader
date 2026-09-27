@@ -1,6 +1,5 @@
 import streamlit as st
 from main import generate_test_from_image, generate_flashcards_from_image, generate_notes_from_image
-from flashcards import show_my_flashcards
 
 
 st.markdown("""
@@ -314,8 +313,10 @@ if uploaded_file:
     with test_col:
 
         if st.button("Generate Test using Uploaded File"):
-
-            result = generate_test_from_image(uploaded_file)
+            st.session_state.input_image = uploaded_file
+            st.session_state.generation_type = "test"
+            st.switch_page("loading.py")
+            
 
             st.session_state.test = result
 
@@ -324,17 +325,16 @@ if uploaded_file:
     with flashcard_col:
 
         if st.button("Generate Flashcards using Uploaded File"):
-
-            result = generate_flashcards_from_image(uploaded_file)
-
-            st.session_state.flashcards = result
-
-        if "flashcards" in st.session_state:
-            st.page_link("flashcards.py", label="View Flashcards →")
+            st.session_state.input_image = uploaded_file
+            st.session_state.generation_type = "flashcards"
+            st.switch_page("loading.py")
 
     with notes_col:
 
         if st.button("Generate Review Notes using Uploaded File"):
+            st.session_state.input_image = uploaded_file
+            st.session_state.generation_type = "notes"
+            st.switch_page("loading.py")
 
             result = generate_notes_from_image(uploaded_file)
 
