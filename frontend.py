@@ -340,3 +340,5 @@ if uploaded_file:
 
             st.write(result)
 
+st.page_link("app.py", label='go to app')
+
