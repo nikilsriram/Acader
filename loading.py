@@ -1,5 +1,5 @@
 import streamlit as st
-from main import generate_flashcards_from_image
+from main import generate_flashcards_from_image, generate_test_from_image, generate_notes_from_image
 
 def call_load():
     st.markdown("""
@@ -45,9 +45,24 @@ def call_load():
         )
 
         st.session_state.flashcards = result
-        st.write("RESULT:", result)
-
 
         st.page_link("./flashcards.py", label="View Flashcards")
+    if st.session_state.generation_type == "test":
+        result = generate_test_from_image(
+            st.session_state.input_image
+        )
+
+        st.session_state.test = result
+
+        st.page_link("./test.py", label="View Test")
+
+    if st.session_state.generation_type == "notes":
+        result = generate_notes_from_image (
+            st.session_state.input_image
+        )
+
+        st.session_state.notes = result
+
+        st.page_link("./notes.py", label="View Notes")
 
 call_load()

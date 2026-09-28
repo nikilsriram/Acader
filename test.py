@@ -9,156 +9,246 @@ if st.session_state.test:
 
     test_data = st.session_state.test
 
-    # Convert Python dictionary → JSON → JavaScript object
-    test_json = json.dumps(test_data)
+    questions = []
+
+    for q in test_data["multiple_choice"]:
+        answers = []
+
+        for choice in q["choices"]:
+            answers.append({
+                "text": choice,
+                "correct": choice == q["correct_answer"]
+            })
+
+        questions.append({
+            "question": q["question"],
+            "answers": answers
+        })
+
+    test_json = json.dumps(questions)
 
     html = """
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
 
-        <title>Test</title>
+body {
+    background: black;
+    color: white;
+}
 
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                font-family: 'Poppins', sans-serif;
-                box-sizing: border-box;
-            }
+.app {
+    background: black;
+    width: 90%;
+    max-width: 600px;
+    margin: 50px auto 0;
+    border-radius: 10px;
+    padding: 30px;
+}
 
-            body {
-                background: #001e4d;
-            }
+.app h1 {
+    font-size: 25px;
+    color: white;
+    font-weight: 600;
+    border-bottom: 1px solid #333;
+    padding-bottom: 30px;
+}
 
-            .app {
-                background: #fff;
-                width: 90%;
-                max-width: 600px;
-                margin: 100px auto 0;
-                border-radius: 10px;
-                padding: 30px;
-            }
+.quiz {
+    padding: 20px 0;
+}
 
-            .app h1 {
-                font-size: 25px;
-                color: #001e4d;
-                font-weight: 600;
-                border-bottom: 1px solid #333;
-                padding-bottom: 30px;
-            }
+.quiz h2 {
+    font-size: 18px;
+    color: white;
+    font-weight: 600;
+}
 
-            .quiz {
-                padding: 20px 0;
-            }
+.btn {
+    background: black;
+    color: white;
+    font-weight: 500;
+    width: 100%;
+    border: 1px solid #333;
+    padding: 12px;
+    margin: 10px 0;
+    text-align: left;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
 
-            .quiz h2 {
-                font-size: 18px;
-                color: #001e4d;
-                font-weight: 600;
-            }
+.btn:hover:not([disabled]) {
+    border-color: #b74b4b;
+    color: #b74b4b;
+}
 
-            .btn {
-                background: #fff;
-                color: #222;
-                font-weight: 500;
-                width: 100%;
-                border: 1px solid #222;
-                padding: 10px;
-                margin: 10px 0;
-                text-align: left;
-                border-radius: 4px;
-                cursor: pointer;
-            }
+.btn:disabled {
+    cursor: no-drop;
+}
 
-            .btn:hover {
-                background: #222;
-                color: #fff;
-            }
+#next-btn {
+    background: black;
+    color: #b74b4b;
+    font-weight: 600;
+    width: 150px;
+    border: 2px solid #b74b4b;
+    padding: 10px;
+    margin: 20px auto 0;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
 
-            #next-btn {
-                background: #001e4d;
-                color: #fff;
-                font-weight: 500;
-                width: 150px;
-                border: 0;
-                padding: 10px;
-                margin: 20px auto 0;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-        </style>
-    </head>
+#next-btn:hover {
+    background: #b74b4b;
+    color: black;
+    transform: scale(1.03);
+}
 
-    <body>
+.correct {
+    background: #1f5c3a !important;
+    border-color: #4ade80 !important;
+    color: white !important;
+}
 
-        <div class="app">
-
-            <h1>Test</h1>
-
-            <div class="quiz">
-
-                <h2 id="question">Question goes here</h2>
-
-                <div id="answer-buttons">
-                </div>
-
-                <button id="next-btn">Next</button>
-
+.incorrect {
+    background: #5c1f1f !important;
+    border-color: #b74b4b !important;
+    color: white !important;
+}
+</style>
+</head>
+<body>
+    <div class="app">
+        <h1>Simple Quiz</h1>
+        <div class="quiz">
+            <h2 id="question">Question goes here</h2>
+            <div id="answer-buttons">
+                <button class="btn">Answer 1</button>
+                <button class="btn">Answer 2</button>
+                <button class="btn">Answer 3</button>
+                <button class="btn">Answer 4</button>
             </div>
-
+            <button id="next-btn">Next</button>
         </div>
 
+    </div>
 
-        <script>
+    <script>
+    const questions = TEST_DATA;
 
-            // Python test data gets inserted here
-            const testData = TEST_DATA;
+    const questionElement = document.getElementById("question");
+    const answerButtons = document.getElementById("answer-buttons");
+    const nextButton = document.getElementById("next-btn");
 
-            // Get the multiple-choice questions
-            const questions = testData.multiple_choice;
+    let currentQuestionIndex = 0;
+    let score = 0;
 
-            console.log(questions);
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        nextButton.innerHTML = "Next";
+        showQuestion();
+    }
 
-            let currentQuestionIndex = 0;
+    function showQuestion() {
+        resetState();
 
-            const questionElement = document.getElementById("question");
-            const answerButtons = document.getElementById("answer-buttons");
-            const nextButton = document.getElementById("next-btn");
+        let currentQuestion = questions[currentQuestionIndex];
+        let questionNo = currentQuestionIndex + 1;
 
+        questionElement.innerHTML =
+            questionNo + ". " + currentQuestion.question;
 
-            function showQuestion() {
+        currentQuestion.answers.forEach(answer => {
+            const button = document.createElement("button");
 
-                const currentQuestion = questions[currentQuestionIndex];
+            button.innerHTML = answer.text;
+            button.classList.add("btn");
 
-                questionElement.innerHTML =
-                    (currentQuestionIndex + 1) + ". " +
-                    currentQuestion.question;
-
-                answerButtons.innerHTML = "";
-
-                currentQuestion.choices.forEach(choice => {
-
-                    const button = document.createElement("button");
-
-                    button.innerHTML = choice;
-
-                    button.classList.add("btn");
-
-                    answerButtons.appendChild(button);
-
-                });
+            if (answer.correct) {
+                button.dataset.correct = "true";
             }
 
+            button.addEventListener("click", selectAnswer);
+            answerButtons.appendChild(button);
+        });
+    }
 
+    function resetState() {
+        nextButton.style.display = "none";
+
+        while (answerButtons.firstChild) {
+            answerButtons.removeChild(answerButtons.firstChild);
+        }
+    }
+
+    function selectAnswer(e) {
+        const selectedBtn = e.target;
+        const isCorrect = selectedBtn.dataset.correct === "true";
+
+        if (isCorrect) {
+            selectedBtn.classList.add("correct");
+            score++;
+        } else {
+            selectedBtn.classList.add("incorrect");
+        }
+
+        Array.from(answerButtons.children).forEach(button => {
+            if (button.dataset.correct === "true") {
+                button.classList.add("correct");
+            }
+
+            button.disabled = true;
+        });
+
+        nextButton.style.display = "block";
+    }
+
+    function showScore() {
+        resetState();
+
+        questionElement.innerHTML =
+            `You scored ${score} out of ${questions.length}!`;
+
+        nextButton.innerHTML = "Play Again";
+        nextButton.style.display = "block";
+    }
+
+    function handleNextButton() {
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
             showQuestion();
+        } else {
+            showScore();
+        }
+    }
 
-        </script>
+    nextButton.addEventListener("click", () => {
+        if (currentQuestionIndex < questions.length) {
+            handleNextButton();
+        } else {
+            startQuiz();
+        }
+    });
 
-    </body>
-    </html>
+    startQuiz();
+</script>
+</body>
+</html>
     """
 
     # Replace the placeholder with the actual Python data

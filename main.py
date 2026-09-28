@@ -1,19 +1,23 @@
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from dotenv import load_dotenv
+import os
+import base64
 import json
 
 load_dotenv()
 
 
-def load_image(theimage):
-    import pytesseract
-    from PIL import Image
+def encode_image_to_base64(uploaded_file):
+    image_bytes = uploaded_file.getvalue()
+    mime_type = uploaded_file.type
 
-    img = Image.open(theimage)
-    extracted_text = pytesseract.image_to_string(img)
+    if mime_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise ValueError("Only JPG, PNG, and WEBP images are supported.")
 
-    return extracted_text
+    encoded_string = base64.b64encode(image_bytes).decode("utf-8")
+
+    return encoded_string, mime_type
 
 
 subagent = create_agent(
@@ -27,7 +31,6 @@ subagent = create_agent(
     description="""You are a test-generation specialist.
 
 When given study notes, generate the actual test.
-Do not describe or summarize the test.
 
 Generate:
 - 10 multiple-choice questions
@@ -39,15 +42,15 @@ For each multiple-choice question:
 - One choice must be correct.
 - The other 3 choices must be incorrect but plausible distractors.
 - Do not make the correct answer obviously longer, shorter, or more detailed than the distractors.
-- Do not reveal which choice is correct.
+- Include the correct answer in the "correct_answer" field.
 
 For true/false questions:
 - Provide only the statement.
-- Do not reveal whether it is true or false.
+- Include the correct answer in the "correct_answer" field as either true or false.
 
 For short-answer questions:
 - Provide only the question.
-- Do not provide the answer.
+- Include the expected answer in the "correct_answer" field.
 
 Return ONLY valid JSON in this exact structure:
 
@@ -60,24 +63,27 @@ Return ONLY valid JSON in this exact structure:
                 "Choice B",
                 "Choice C",
                 "Choice D"
-            ]
+            ],
+            "correct_answer": "Choice B"
         }
     ],
     "true_false": [
         {
-            "question": "Statement"
+            "question": "Statement",
+            "correct_answer": true
         }
     ],
     "short_answer": [
         {
-            "question": "Question text"
+            "question": "Question text",
+            "correct_answer": "Expected answer"
         }
     ]
 }
 
 The JSON must contain exactly 10 multiple-choice questions, 5 true/false questions, and 5 short-answer questions.
 
-Base all questions only on the provided study notes.
+Base all questions and answers only on the provided study notes.
 Do not add unsupported information.
 Do not include markdown or any text outside the JSON.
 """
@@ -135,6 +141,13 @@ def generate_flashcards(query: str):
 
     content = result["messages"][-1].content
 
+    content = content.strip()
+
+    if content.startswith("```"):
+        content = content.replace("```json", "", 1)
+        content = content.replace("```", "", 1)
+        content = content.strip()
+
     return json.loads(content)
 
 
@@ -191,31 +204,164 @@ main_agent = create_agent(
 
 
 def generate_test_from_image(uploaded_file):
-    extracted_text = load_image(uploaded_file)
-
-    result = main_agent.invoke({
-        "messages": [
-            {
-                "role": "user",
-                "content": "Generate a test from these notes:\n\n" + extracted_text
-            }
-        ]
-    })
-
-    return json.loads(result["messages"][-1].content)
-
-
-def generate_flashcards_from_image(uploaded_file):
-    extracted_text = load_image(uploaded_file)
-
-    print("OCR COMPLETE")
-    print("TEXT LENGTH:", len(extracted_text))
+    base64_image, mime_type = encode_image_to_base64(uploaded_file)
 
     result = subagent.invoke({
         "messages": [
             {
                 "role": "user",
-                "content": "Generate a flashcard set from these notes:\n\n" + extracted_text
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """Look carefully at this handwritten study-notes image.
+
+First, understand and transcribe the handwritten content as accurately as possible.
+
+Then generate a test based ONLY on the information actually present in the image.
+
+Generate exactly:
+- 10 multiple-choice questions
+- 5 true/false questions
+- 5 short-answer questions
+
+For multiple-choice questions:
+- Exactly 4 choices.
+- Exactly 1 correct answer.
+- The other 3 choices must be plausible but incorrect.
+- Include the correct answer in "correct_answer".
+
+For true/false questions:
+- Include "correct_answer" as true or false.
+
+For short-answer questions:
+- Include the expected answer in "correct_answer".
+
+IMPORTANT:
+- Do NOT invent information that is not visible in the notes.
+- Do NOT generate questions about unrelated topics.
+- If handwriting is unclear, use the surrounding context to interpret it.
+- Base every question directly on the handwritten notes.
+
+Return ONLY valid JSON.
+Do NOT use Markdown.
+Do NOT use ```json.
+Do NOT include explanations.
+
+Use exactly this structure:
+
+{
+    "multiple_choice": [
+        {
+            "question": "Question",
+            "choices": [
+                "Choice A",
+                "Choice B",
+                "Choice C",
+                "Choice D"
+            ],
+            "correct_answer": "Choice A"
+        }
+    ],
+    "true_false": [
+        {
+            "question": "Statement",
+            "correct_answer": true
+        }
+    ],
+    "short_answer": [
+        {
+            "question": "Question",
+            "correct_answer": "Answer"
+        }
+    ]
+}
+
+You MUST generate exactly 10 multiple-choice, 5 true/false, and 5 short-answer questions."""
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ]
+    })
+
+    content = result["messages"][-1].content
+    content = content.strip()
+
+    if content.startswith("```json"):
+        content = content[7:]
+    elif content.startswith("```"):
+        content = content[3:]
+
+    if content.endswith("```"):
+        content = content[:-3]
+
+    content = content.strip()
+
+    if not content.startswith("{"):
+        raise ValueError(
+            "Model did not return JSON. Model output was:\n" + content
+        )
+
+    return json.loads(content)
+
+def generate_flashcards_from_image(uploaded_file):
+    base64_image, mime_type = encode_image_to_base64(uploaded_file)
+
+    result = subagent.invoke({
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """Look carefully at this handwritten study-notes image.
+
+Use ONLY the information contained in the image to generate exactly 20 flashcards.
+
+The response MUST begin with { and end with }.
+
+DO NOT use Markdown.
+DO NOT use ```json.
+DO NOT use headings.
+DO NOT use bullet points.
+DO NOT write "Flashcard Set".
+DO NOT write "Card 1".
+DO NOT write Q: or A:.
+DO NOT include any explanation.
+
+Each flashcard must contain one question and one answer.
+
+Use this exact structure:
+
+{
+    "Question 1": "question",
+    "Answer 1": "answer",
+    "Question 2": "question",
+    "Answer 2": "answer",
+    "Question 3": "question",
+    "Answer 3": "answer"
+}
+
+Continue through Question 20 and Answer 20.
+
+IMPORTANT:
+- Base every flashcard ONLY on the handwritten notes.
+- Do NOT invent information.
+- Do NOT use outside knowledge.
+- Make the questions directly relevant to the notes."""
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{base64_image}"
+                        }
+                    }
+                ]
             }
         ]
     })
@@ -225,19 +371,48 @@ def generate_flashcards_from_image(uploaded_file):
     print("MODEL OUTPUT:")
     print(repr(content))
 
+    content = content.strip()
+
+    if content.startswith("```json"):
+        content = content[7:]
+    elif content.startswith("```"):
+        content = content[3:]
+
+    if content.endswith("```"):
+        content = content[:-3]
+
+    content = content.strip()
+
+    if not content.startswith("{"):
+        raise ValueError(
+            "Model did not return JSON. Model output was:\n" + content
+        )
+
     return json.loads(content)
 
 
 def generate_notes_from_image(uploaded_file):
-    extracted_text = load_image(uploaded_file)
-
-    result = main_agent.invoke({
-        "messages": [
-            {
-                "role": "user",
-                "content": "Generate a comprehensive note guide set from these notes:\n\n" + extracted_text
-            }
-        ]
-    })
+    base64_image, mime_type = encode_image_to_base64(uploaded_file)
+    
+    result = subagent.invoke({
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": """Look carefully at this handwritten study-notes image.
+    and generate a comprehensive review guide that will make sure the individual masters the concepts."""
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_type};base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ]
+        })
 
     return result["messages"][-1].content

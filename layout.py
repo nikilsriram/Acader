@@ -14,12 +14,12 @@ with open("style.css", "r", encoding="utf-8") as f:
 
 st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
-with open("hi.jpeg", "rb") as f:
+with open("./gem.jpeg", "rb") as f:
     image = base64.b64encode(f.read()).decode()
 
 with open("layout.html", "r", encoding="utf-8") as f:
     html = f.read()
 
-html = html.replace('src="./hi.jpeg"', f'src="data:image/jpeg;base64,{image}"')
+html = html.replace('src="./gem.jpeg"', f'src="data:image/jpeg;base64,{image}"')
 
 st.html(html)
