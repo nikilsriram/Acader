@@ -2,6 +2,11 @@ import json
 import streamlit as st
 import streamlit.components.v1 as components
 
+if not st.session_state.get("user_id") and not st.session_state.get("flashcards"):
+    st.warning("Please log in to view this page.")
+    st.page_link("app.py", label="Go to Login")
+    st.stop()  # Instantly halts execution of the rest of the page code
+
 
 def format_ai_output_to_list(raw_data):
     """Convert AI output into a list of {question, answer} dictionaries."""

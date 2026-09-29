@@ -1,6 +1,12 @@
 import streamlit as st
 import json
 
+if not st.session_state.get("user_id"):
+    st.warning("Please log in to view this page.")
+    st.page_link("app.py", label="Go to Login")
+    st.stop()  # Instantly halts execution of the rest of the page code
+
+
 if "test" not in st.session_state:
     st.session_state.test = None
 

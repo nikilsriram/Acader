@@ -1,6 +1,12 @@
 import streamlit as st
 from main import generate_flashcards_from_image, generate_test_from_image, generate_notes_from_image
 
+if not st.session_state.get("user_id"):
+    st.warning("Please log in to view this page.")
+    st.page_link("app.py", label="Go to Login")
+    st.stop()  # Instantly halts execution of the rest of the page code
+
+
 def call_load():
     st.markdown("""
                 <style>

@@ -1,6 +1,11 @@
 import streamlit as st
 from main import generate_test_from_image, generate_flashcards_from_image, generate_notes_from_image
 
+if not st.session_state.get("user_id"):
+    st.warning("Please log in to view this page.")
+    st.page_link("app.py", label="Go to Login")
+    st.stop()  # Instantly halts execution of the rest of the page code
+
 
 st.markdown("""
 <style>
@@ -262,29 +267,22 @@ if st.session_state.camera_active:
         with test_col:
 
             if st.button("Generate Test using Photo"):
-
-                result = generate_test_from_image(picture)
-
-                st.write(result)
+                st.session_state.input_image = picture
+                st.session_state.generation_type = "test"
+                st.switch_page("loading.py")
 
         with flashcard_col:
 
             if st.button("Generate Flashcards using Photo"):
-
-                result = generate_flashcards_from_image(picture)
-
-                st.session_state.flashcards = result
-
-                if st.button("View Flashcards →", key="view_flashcards"):
-                     st.switch_page("pages/flashcards.py")
+                st.session_state.input_image = picture
+                st.session_state.generation_type = "flashcards"
+                st.switch_page("loading.py")
 
         with notes_col:
-
             if st.button("Generate Review Notes using Photo"):
-
-                result = generate_notes_from_image(picture)
-
-                st.write(result)
+                st.session_state.input_image = picture
+                st.session_state.generation_type = "flashcards"
+                st.switch_page("loading.py")
 
 
 if uploaded_file:
@@ -316,11 +314,7 @@ if uploaded_file:
             st.session_state.input_image = uploaded_file
             st.session_state.generation_type = "test"
             st.switch_page("loading.py")
-            
 
-            st.session_state.test = result
-
-            st.write("Success")
 
     with flashcard_col:
 
@@ -335,10 +329,6 @@ if uploaded_file:
             st.session_state.input_image = uploaded_file
             st.session_state.generation_type = "notes"
             st.switch_page("loading.py")
-
-            result = generate_notes_from_image(uploaded_file)
-
-            st.write(result)
 
 st.page_link("app.py", label='go to app')
 
