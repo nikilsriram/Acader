@@ -380,3 +380,9 @@ if "flashcards" in st.session_state:
     show_my_flashcards(
         st.session_state.flashcards
     )
+
+st.page_link(
+    "app.py",
+    label="← Back to Library",
+    icon="📚"
+    )

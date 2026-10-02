@@ -40,7 +40,7 @@ if st.session_state.test:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 <style>
 * {
     margin: 0;
@@ -133,6 +133,28 @@ body {
     background: #5c1f1f !important;
     border-color: #b74b4b !important;
     color: white !important;
+}
+
+[data-testid="stPageLink"] a {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #b74b4b !important;
+    background-color: #111111 !important;
+    border: 1px solid #333333 !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stPageLink"] a:hover {
+    background-color: #b74b4b !important;
+    color: #000000 !important;
+    border-color: #b74b4b !important;
+    transform: translateY(-1px);
 }
 </style>
 </head>
@@ -256,7 +278,11 @@ body {
 </body>
 </html>
     """
-
+    st.page_link(
+    "app.py",
+    label="← Back to Library",
+    icon="📚"
+    )
     # Replace the placeholder with the actual Python data
     html = html.replace("TEST_DATA", test_json)
 

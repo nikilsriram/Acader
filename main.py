@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 import base64
 import json
+from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
@@ -20,8 +21,15 @@ def encode_image_to_base64(uploaded_file):
     return encoded_string, mime_type
 
 
+# Claude through OpenRouter
+subagent_model = ChatOpenAI(
+    model="anthropic/claude-sonnet-4-6",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+)
+
 subagent = create_agent(
-    model="openrouter:anthropic/claude-sonnet-4-6",
+    model=subagent_model,
     tools=[]
 )
 
@@ -140,7 +148,6 @@ def generate_flashcards(query: str):
     })
 
     content = result["messages"][-1].content
-
     content = content.strip()
 
     if content.startswith("```"):
@@ -185,8 +192,15 @@ def generate_notes(query: str):
     return result["messages"][-1].content
 
 
+# GPT-OSS through OpenRouter
+main_agent_model = ChatOpenAI(
+    model="openai/gpt-oss-20b",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+)
+
 main_agent = create_agent(
-    model="openrouter:openai/gpt-oss-20b",
+    model=main_agent_model,
     tools=[
         generate_test,
         generate_flashcards,
@@ -309,6 +323,7 @@ You MUST generate exactly 10 multiple-choice, 5 true/false, and 5 short-answer q
 
     return json.loads(content)
 
+
 def generate_flashcards_from_image(uploaded_file):
     base64_image, mime_type = encode_image_to_base64(uploaded_file)
 
@@ -393,26 +408,27 @@ IMPORTANT:
 
 def generate_notes_from_image(uploaded_file):
     base64_image, mime_type = encode_image_to_base64(uploaded_file)
-    
+
     result = subagent.invoke({
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """Look carefully at this handwritten study-notes image.
-    and generate a comprehensive review guide that will make sure the individual masters the concepts."""
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{mime_type};base64,{base64_image}"
-                            }
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """Look carefully at this handwritten study-notes image.
+
+Generate a comprehensive review guide that will make sure the individual masters the concepts."""
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{base64_image}"
                         }
-                    ]
-                }
-            ]
-        })
+                    }
+                ]
+            }
+        ]
+    })
 
     return result["messages"][-1].content

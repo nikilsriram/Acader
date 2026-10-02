@@ -7,7 +7,9 @@ pg = st.navigation([
     st.Page("flashcards.py", title="Flashcards", url_path="/flashcars"),
     st.Page("loading.py", title="Loading", url_path="/loading"),
     st.Page("notes.py", title="Notes", url_path="/notes"),
-    st.Page("app.py", title="Login", url_path="/login")
+    st.Page("app.py", title="Login", url_path="/login"),
+    st.Page("aboutme.py", title="About Me", url_path="/aboutme"),
+    st.Page("progresstracker.py", title="Progress Tracker", url_path="/progress")
 ])
 
 pg.run()

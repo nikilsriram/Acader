@@ -159,24 +159,37 @@ hr {
         display: none;
     }
 }
+
+[data-testid="stPageLink"] a {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #b74b4b !important;
+    background-color: #111111 !important;
+    border: 1px solid #333333 !important;
+    border-radius: 10px !important;
+    padding: 9px 16px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stPageLink"] a:hover {
+    background-color: #b74b4b !important;
+    color: #000000 !important;
+    border-color: #b74b4b !important;
+    transform: translateY(-1px);
+}
 </style>
 """, unsafe_allow_html=True)
 
 
-st.markdown("""
-    <div class="navbar-container">
-        <a href="#" class="logo">Acader</a>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/frontend" class="active">Services</a>
-            <a href="/flashcards">Flashcards</a>
-            <a href="#">Education</a>
-            <a href="#">Experience</a>
-            <a href="#">Contact</a>
-        </nav>
-    </div>
-""", unsafe_allow_html=True)
-
+st.page_link(
+    "app.py",
+    label="← Back to Library",
+    icon="📚"
+)
 
 st.markdown(
     """
@@ -330,5 +343,5 @@ if uploaded_file:
             st.session_state.generation_type = "notes"
             st.switch_page("loading.py")
 
-st.page_link("app.py", label='go to app')
+
 

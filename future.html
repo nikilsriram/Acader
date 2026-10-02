@@ -8,200 +8,133 @@
         * {
             margin: 0;
             padding: 0;
-            font-family: 'Poppins', sans-serif;
-            box-sizing: border-box
+            box-sizing: border-box;
         }
 
         body {
-            background: #001e4d;
+            background-color: #222;
+            color: #fff;
+            font-family: 'sans-serif'
         }
 
-        .app {
-            background: #fff;
-            width: 90%;
-            max-width: 600px;
-            margin: 100px auto 0;
-            border-radius: 10px;
-            padding: 30px;
+        .testimonials {
+            padding: 0 60px;
+            margin: 50px auto;
+            width: 1300px;
         }
 
-        .app h1 {
-            font-size: 25px;
-            color: #001e4d;
-            font-weight: 600;
-            border-bottom: 1px solid #333;
-            padding-bottom: 30px;
+        .testimonials h1 {
+            font-size: 40px;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+            margin-bottom: 60px;
+            padding-bottom: 15px;
         }
 
-        .quiz {
-            padding: 20px 0;
+        .testimonials h1::after {
+            content: '';
+            position: absolute;
+            height: 3px;
+            width: 170px;
+            background-color: #fff;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        .quiz h2 {
-            font-size: 18px;
-            color: #001e4d;
-            font-weight: 600;
+        .content {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            margin-top: 100px;
         }
 
-        .btn {
-            background: #fff;
-            color: #222;
-            font-weight: 500;
-            width: 100%;
-            border: 1px solid #222;
-            padding: 10px;
-            margin: 10px 0;
-            text-align: left;
-            border-radius: 4px;
+        .card {
+            background: #333;
+            padding: 60px 26px 20px;
+            width: calc(34% - 20px);
+            text-align: center;
+            user-select: none;
             cursor: pointer;
+            border-radius: 6px;
+            border: 2px solid #222;
         }
 
-        .btn:hover:not([disabled]){
-            background: #222;
-            color: #fff;
+        .image {
+            position: absolute;
+            top: 150px;
+            margin-left: 100px;
         }
 
-        .btn:disabled{
-            cursor: no-drop;
+        .image img {
+            width: 120px;
+            border-radius: 50%;
+            border: 5px solid #222;
+            transition: all 0.3s ease;
         }
 
-        #next-btn {
-            background: #001e4d;
-            color: #fff;
-            font-weight: 500;
-            width: 150px;
-            border: 0;
-            padding: 10px;
-            margin: 20px auto 0;
-            border-radius: 4px;
-            cursor:pointer;
+        .box h3 {
+            font-size: 25px;
+            margin: 5px 0;
         }
 
-        .correct {
-            background: #9aeabc;
+        .box h3 span {
+            font-size: 12px;
+            font-weight: normals;
         }
 
-        .incorrect {
-            background: #ff9393;
+        .box p {
+            font-size: 18px; 
+        }
+
+        .box p i {
+            color:crimson;
+        }
+
+        .card:hover {
+            border:2px solid #fff;
+        }
+
+        .card:hover .image img {
+            border: 2px solid #fff;
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <h1>Simple Quiz</h1>
-        <div class="quiz">
-            <h2 id="question">Question goes here</h2>
-            <div id="answer-buttons">
-                <button class="btn">Answer 1</button>
-                <button class="btn">Answer 2</button>
-                <button class="btn">Answer 3</button>
-                <button class="btn">Answer 4</button>
+    <div class="testimonials">
+        <h1>Testimonials</h1>
+        <div class="content">
+            <div class="card">
+                <div class="box">
+                    <div class="image">
+                        <img src="img" >
+                    </div>
+                    <h3>Name <span>CEO at XYZ</span></h3>
+                    <p><i class="fa fa-quote-left">asdfasdfasdf</i></p>
+                </div>
             </div>
-            <button id="next-btn">Next</button>
+
+            <div class="card">
+                <div class="box">
+                    <div class="image">
+                        <img src="img" >
+                    </div>
+                    <h3>Name <span>CEO at XYZ</span></h3>
+                    <p><i class="fa fa-quote-left">asdfasdfasdf</i></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="box">
+                    <div class="image">
+                        <img src="img" >
+                    </div>
+                    <h3>Name <span>CEO at XYZ</span></h3>
+                    <p><i class="fa fa-quote-left">asdfasdfasdf</i></p>
+                </div>
+            </div>
         </div>
-
     </div>
-
-    <script>
-    const questions = TEST_DATA;
-
-    const questionElement = document.getElementById("question");
-    const answerButtons = document.getElementById("answer-buttons");
-    const nextButton = document.getElementById("next-btn");
-
-    let currentQuestionIndex = 0;
-    let score = 0;
-
-    function startQuiz() {
-        currentQuestionIndex = 0;
-        score = 0;
-        nextButton.innerHTML = "Next";
-        showQuestion();
-    }
-
-    function showQuestion() {
-        resetState();
-
-        let currentQuestion = questions[currentQuestionIndex];
-        let questionNo = currentQuestionIndex + 1;
-
-        questionElement.innerHTML =
-            questionNo + ". " + currentQuestion.question;
-
-        currentQuestion.answers.forEach(answer => {
-            const button = document.createElement("button");
-
-            button.innerHTML = answer.text;
-            button.classList.add("btn");
-
-            if (answer.correct) {
-                button.dataset.correct = "true";
-            }
-
-            button.addEventListener("click", selectAnswer);
-            answerButtons.appendChild(button);
-        });
-    }
-
-    function resetState() {
-        nextButton.style.display = "none";
-
-        while (answerButtons.firstChild) {
-            answerButtons.removeChild(answerButtons.firstChild);
-        }
-    }
-
-    function selectAnswer(e) {
-        const selectedBtn = e.target;
-        const isCorrect = selectedBtn.dataset.correct === "true";
-
-        if (isCorrect) {
-            selectedBtn.classList.add("correct");
-            score++;
-        } else {
-            selectedBtn.classList.add("incorrect");
-        }
-
-        Array.from(answerButtons.children).forEach(button => {
-            if (button.dataset.correct === "true") {
-                button.classList.add("correct");
-            }
-
-            button.disabled = true;
-        });
-
-        nextButton.style.display = "block";
-    }
-
-    function showScore() {
-        resetState();
-
-        questionElement.innerHTML =
-            `You scored ${score} out of ${questions.length}!`;
-
-        nextButton.innerHTML = "Play Again";
-        nextButton.style.display = "block";
-    }
-
-    function handleNextButton() {
-        currentQuestionIndex++;
-
-        if (currentQuestionIndex < questions.length) {
-            showQuestion();
-        } else {
-            showScore();
-        }
-    }
-
-    nextButton.addEventListener("click", () => {
-        if (currentQuestionIndex < questions.length) {
-            handleNextButton();
-        } else {
-            startQuiz();
-        }
-    });
-
-    startQuiz();
-</script>
 </body>
 </html>
