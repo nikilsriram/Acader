@@ -217,6 +217,7 @@ main_agent = create_agent(
 )
 
 
+
 def generate_test_from_image(uploaded_file):
     base64_image, mime_type = encode_image_to_base64(uploaded_file)
 
@@ -228,52 +229,24 @@ def generate_test_from_image(uploaded_file):
                     {
                         "type": "text",
                         "text": """Look carefully at this handwritten study-notes image.
-
-First, understand and transcribe the handwritten content as accurately as possible.
-
-Then generate a test based ONLY on the information actually present in the image.
+Generate a test based ONLY on information visible in the image.
 
 Generate exactly:
-- 10 multiple-choice questions
+- 10 multiple-choice questions, each with 4 choices
 - 5 true/false questions
 - 5 short-answer questions
 
-For multiple-choice questions:
-- Exactly 4 choices.
-- Exactly 1 correct answer.
-- The other 3 choices must be plausible but incorrect.
-- Include the correct answer in "correct_answer".
+Each question must include its correct_answer.
+For true/false, correct_answer must be a boolean.
+Do not invent information.
 
-For true/false questions:
-- Include "correct_answer" as true or false.
-
-For short-answer questions:
-- Include the expected answer in "correct_answer".
-
-IMPORTANT:
-- Do NOT invent information that is not visible in the notes.
-- Do NOT generate questions about unrelated topics.
-- If handwriting is unclear, use the surrounding context to interpret it.
-- Base every question directly on the handwritten notes.
-
-Return ONLY valid JSON.
-Do NOT use Markdown.
-Do NOT use ```json.
-Do NOT include explanations.
-
-Use exactly this structure:
-
+Return ONLY valid JSON in this structure:
 {
     "multiple_choice": [
         {
             "question": "Question",
-            "choices": [
-                "Choice A",
-                "Choice B",
-                "Choice C",
-                "Choice D"
-            ],
-            "correct_answer": "Choice A"
+            "choices": ["A", "B", "C", "D"],
+            "correct_answer": "A"
         }
     ],
     "true_false": [
@@ -290,7 +263,8 @@ Use exactly this structure:
     ]
 }
 
-You MUST generate exactly 10 multiple-choice, 5 true/false, and 5 short-answer questions."""
+Include exactly 10, 5, and 5 questions respectively.
+Do not include Markdown or explanations."""
                     },
                     {
                         "type": "image_url",
@@ -304,24 +278,81 @@ You MUST generate exactly 10 multiple-choice, 5 true/false, and 5 short-answer q
     })
 
     content = result["messages"][-1].content
-    content = content.strip()
 
-    if content.startswith("```json"):
-        content = content[7:]
-    elif content.startswith("```"):
-        content = content[3:]
-
-    if content.endswith("```"):
-        content = content[:-3]
+    if not isinstance(content, str):
+        raise ValueError("The model returned a non-text response.")
 
     content = content.strip()
 
-    if not content.startswith("{"):
+    # Remove Markdown code fences if present.
+    if content.startswith("```"):
+        lines = content.splitlines()
+        if lines and lines[0].strip().lower() in ("```json", "```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        content = "\n".join(lines).strip()
+
+    # Parse the JSON object.
+    start = content.find("{")
+    if start == -1:
         raise ValueError(
-            "Model did not return JSON. Model output was:\n" + content
+            f"The model returned no JSON object: {content[:200]!r}"
         )
 
-    return json.loads(content)
+    try:
+        test_data, _ = json.JSONDecoder().raw_decode(content[start:])
+    except json.JSONDecodeError as e:
+        raise ValueError(f"The model returned invalid JSON: {e}") from e
+
+    # Validate the expected sections and counts.
+    expected_counts = {
+        "multiple_choice": 10,
+        "true_false": 5,
+        "short_answer": 5,
+    }
+
+    if not isinstance(test_data, dict):
+        raise ValueError("The generated test must be a JSON object.")
+
+    for section, count in expected_counts.items():
+        questions = test_data.get(section)
+        if not isinstance(questions, list) or len(questions) != count:
+            raise ValueError(
+                f"Invalid test: {section} must contain exactly {count} questions."
+            )
+
+    # Validate multiple-choice question structure.
+    for question in test_data["multiple_choice"]:
+        if (
+            not isinstance(question, dict)
+            or not isinstance(question.get("question"), str)
+            or not isinstance(question.get("choices"), list)
+            or len(question["choices"]) != 4
+            or not isinstance(question.get("correct_answer"), str)
+            or question["correct_answer"] not in question["choices"]
+        ):
+            raise ValueError("A multiple-choice question has an invalid structure.")
+
+    # Validate true/false answers.
+    for question in test_data["true_false"]:
+        if (
+            not isinstance(question, dict)
+            or not isinstance(question.get("question"), str)
+            or type(question.get("correct_answer")) is not bool
+        ):
+            raise ValueError("A true/false question has an invalid structure.")
+
+    # Validate short-answer questions.
+    for question in test_data["short_answer"]:
+        if (
+            not isinstance(question, dict)
+            or not isinstance(question.get("question"), str)
+            or not isinstance(question.get("correct_answer"), str)
+        ):
+            raise ValueError("A short-answer question has an invalid structure.")
+
+    return test_data
 
 
 def generate_flashcards_from_image(uploaded_file):
