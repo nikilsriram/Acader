@@ -5,10 +5,14 @@ import os
 import ast
 import json
 
+st.set_page_config(layout="wide")
+
+
 load_dotenv()
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key)
+
 
 
 st.html(f"""
@@ -16,6 +20,20 @@ st.html(f"""
 
 <head>
 <style>
+
+ html, body {{
+    background-color: #050505 !important;
+    color: white !important;
+}}
+
+[data-testid="stAppViewContainer"] {{
+    background-color: #050505 !important;
+}}
+
+[data-testid="stMain"] {{
+    background-color: #050505 !important;
+}}
+
 [data-testid="stHeader"], 
 [data-testid="stStatusWidget"], 
 #MainMenu {{

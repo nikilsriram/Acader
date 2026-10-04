@@ -1,7 +1,21 @@
 import streamlit as st
 
+st.set_page_config(layout="wide")
+
 st.html(f"""
 <style>
+html, body {{
+    background-color: #050505 !important;
+    color: white !important;
+}}
+
+[data-testid="stAppViewContainer"] {{
+    background-color: #050505 !important;
+}}
+
+[data-testid="stMain"] {{
+    background-color: #050505 !important;
+}}
 
 
    [data-testid="stHeader"], 
@@ -226,7 +240,7 @@ header {{
         <a href="/login">Login/Sign up</a>
     </nav>
 </header>
-<div class="wrapper">
+<div class="faq-wrapper">
 
     <h1>Frequently Asked Questions</h1>
 
