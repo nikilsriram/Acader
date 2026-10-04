@@ -44,6 +44,7 @@ def call_load():
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
                     <div class="loading-text">Getting your study materials ready...</div>
+                    <div class="loading-text"> This may take a couple of minutes ... </div>
                 </div>
                 """, unsafe_allow_html=True)
     if st.session_state.generation_type == "flashcards":

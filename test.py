@@ -171,7 +171,6 @@ body {
 </head>
 <body>
     <div class="app">
-        <h1>Simple Quiz</h1>
         <div class="quiz">
             <h2 id="question">Question goes here</h2>
             <div id="answer-buttons">
