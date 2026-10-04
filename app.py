@@ -156,8 +156,152 @@ header {{
 </body>
 </html>
 """)
+st.markdown("""
+<style>
 
+/* =========================
+   REGISTRATION / LOGIN PAGE
+   ========================= */
 
+/* Force the actual Streamlit app surfaces dark */
+html,
+body,
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+    background: #050505 !important;
+    background-color: #050505 !important;
+    color: #ffffff !important;
+}
+
+/* =========================
+   AUTH TEXT
+   ========================= */
+
+[data-testid="stMain"] h1,
+[data-testid="stMain"] h2,
+[data-testid="stMain"] h3,
+[data-testid="stMain"] p,
+[data-testid="stMain"] label,
+[data-testid="stMain"] label p,
+[data-testid="stMain"] span {
+    color: #ffffff !important;
+}
+
+/* Keep auth content centered */
+[data-testid="stMainBlockContainer"] {
+    max-width: 600px !important;
+    margin: 0 auto !important;
+    padding-top: 7rem !important;
+}
+
+/* =========================
+   TEXT INPUTS
+   ========================= */
+
+[data-testid="stTextInput"] input,
+[data-testid="stTextInput"] input:active,
+[data-testid="stTextInput"] input:focus {
+    background: #111111 !important;
+    background-color: #111111 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border: 1px solid #333333 !important;
+    border-radius: 12px !important;
+    caret-color: #ffffff !important;
+}
+
+[data-testid="stTextInput"] input::placeholder {
+    color: #888888 !important;
+    -webkit-text-fill-color: #888888 !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stTextInput"] input:focus {
+    border-color: #b74b4b !important;
+    box-shadow: 0 0 0 1px #b74b4b !important;
+}
+
+/* =========================
+   SELECTBOX
+   ========================= */
+
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background: #111111 !important;
+    background-color: #111111 !important;
+    border: 1px solid #333333 !important;
+    border-radius: 12px !important;
+}
+
+[data-testid="stSelectbox"] div[data-baseweb="select"] span,
+[data-testid="stSelectbox"] div[data-baseweb="select"] div {
+    color: #ffffff !important;
+}
+
+/* Dropdown */
+div[data-baseweb="popover"],
+div[data-baseweb="menu"] {
+    background: #111111 !important;
+    background-color: #111111 !important;
+}
+
+div[data-baseweb="menu"] li {
+    background: #111111 !important;
+    color: #ffffff !important;
+}
+
+div[data-baseweb="menu"] li:hover {
+    background: #222222 !important;
+    color: #ffffff !important;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+[data-testid="stButton"] button {
+    width: 100% !important;
+    background: #111111 !important;
+    background-color: #111111 !important;
+    color: #b74b4b !important;
+    border: 1px solid #b74b4b !important;
+    border-radius: 25px !important;
+    font-weight: 700 !important;
+}
+
+[data-testid="stButton"] button p,
+[data-testid="stButton"] button span {
+    color: #b74b4b !important;
+}
+
+[data-testid="stButton"] button:hover {
+    background: #b74b4b !important;
+    background-color: #b74b4b !important;
+    border-color: #b74b4b !important;
+}
+
+[data-testid="stButton"] button:hover p,
+[data-testid="stButton"] button:hover span {
+    color: #050505 !important;
+}
+
+/* =========================
+   ALERTS
+   ========================= */
+
+[data-testid="stAlert"] {
+    background: #111111 !important;
+    background-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+[data-testid="stAlert"] * {
+    color: #ffffff !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # Global Authentication States Tracker
 if "user_email" not in st.session_state:
