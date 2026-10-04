@@ -354,6 +354,7 @@ def main_app(user_email, user_id):
     st.title("Welcome Page")
     st.success(f"Welcome, {user_email}")
     st.write("You are logged in successfully! Make sure to download saved files as only the last thing you generated will show up!")
+    st.write("Note: Saving and loading flashcards does not work at the moment!")
 
     st.markdown(
         """
