@@ -368,11 +368,10 @@ st.html(f"""
 
     <nav>
         <a href="/">Home</a>
-        <a href="/frontend">Services</a>
-        <a href="#aboutUs" class="active">Skills</a>
-        <a href="#">Education</a>
-        <a href="#">Experience</a>
-        <a href="/login">Library</a>
+        <a href="/aboutme" class="active">About Us</a>
+        <a href="/faq">Frequently Asked Questions</a>
+        <a href="/contact">Contact Us</a>
+        <a href="/login">Login/Sign up</a>
     </nav>
 </header>
     <section class="about">
@@ -389,7 +388,7 @@ st.html(f"""
                     <div class="info-card"><h3>AI-Powered</h3><p>Uses AI to transform your study materials.</p></div>
                     <div class="info-card"><h3>Flashcards</h3><p>Generate personalized flashcards from your notes.</p></div>
                 </div>
-                <a href="#" class="about-btn">Start Learning →</a>
+                <a href="/login" class="about-btn">Start Learning →</a>
             </div>
         </div>
     </section>

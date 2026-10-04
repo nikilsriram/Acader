@@ -129,11 +129,10 @@ header {{
 
         <nav>
             <a href="/">Home</a>
-            <a href="/">Services</a>
             <a href="/aboutme">About Us</a>
             <a href="/">Education</a>
-            <a href="/">Experience</a>
-            <a href="/login" class="active">Library</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/login" class="active">Login/Sign up</a>
         </nav>
     </header>
 </body>
@@ -224,13 +223,11 @@ def main_app(user_email, user_id):
     st.page_link(
         "frontend.py",
         label="Go to generator →",
-        icon="📚"
     )
 
     st.page_link(
             "progresstracker.py",
             label="Go to progress tracker →",
-            icon="📚"
         )
     
     # --- MASTER SAVE BUTTON ---
@@ -423,7 +420,7 @@ def main_app(user_email, user_id):
 
 
 def auth_screen():
-    st.title("Streamlit & Supabase Auth App")
+    st.title("Registration & Login")
     option = st.selectbox("Choose an action: ", ["Login", "Sign Up"])
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")

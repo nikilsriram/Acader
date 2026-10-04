@@ -9,7 +9,9 @@ pg = st.navigation([
     st.Page("notes.py", title="Notes", url_path="/notes"),
     st.Page("app.py", title="Login", url_path="/login"),
     st.Page("aboutme.py", title="About Me", url_path="/aboutme"),
-    st.Page("progresstracker.py", title="Progress Tracker", url_path="/progress")
+    st.Page("progresstracker.py", title="Progress Tracker", url_path="/progress"),
+    st.Page("faq.py", title="Frequently Asked Questions", url_path="/faq"),
+    st.Page("contact.py", title="Contact Us", url_path="/contact")
 ])
 
 pg.run()

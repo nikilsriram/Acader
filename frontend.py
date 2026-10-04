@@ -6,6 +6,19 @@ if not st.session_state.get("user_id"):
     st.page_link("app.py", label="Go to Login")
     st.stop()  # Instantly halts execution of the rest of the page code
 
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.page_link("app.py", label="Welcome", use_container_width=True)
+
+with col2:
+    st.page_link("frontend.py", label="Generator", use_container_width=True)
+
+with col3:
+    st.page_link("progresstracker.py", label="Progress Tracker", use_container_width=True)
+
+st.divider()
+
 
 st.markdown("""
 <style>
@@ -185,12 +198,6 @@ hr {
 """, unsafe_allow_html=True)
 
 
-st.page_link(
-    "app.py",
-    label="← Back to Library",
-    icon="📚"
-)
-
 st.markdown(
     """
     <div class="acader-title">
@@ -261,6 +268,9 @@ if st.session_state.camera_active:
         "Take a picture"
     )
 
+    if st.button("Close Camera"):
+        st.session_state.camera_active = False
+
     if picture:
 
         st.image(
@@ -294,7 +304,7 @@ if st.session_state.camera_active:
         with notes_col:
             if st.button("Generate Review Notes using Photo"):
                 st.session_state.input_image = picture
-                st.session_state.generation_type = "flashcards"
+                st.session_state.generation_type = "notes"
                 st.switch_page("loading.py")
 
 

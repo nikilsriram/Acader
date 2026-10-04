@@ -8,27 +8,35 @@ if not st.session_state.get("user_id") and not st.session_state.get("flashcards"
     st.stop()  # Instantly halts execution of the rest of the page code
 
 
-def format_ai_output_to_list(raw_data):
-    """Convert AI output into a list of {question, answer} dictionaries."""
+col1, col2, col3 = st.columns(3)
 
-    # Already in the correct format
-    if isinstance(raw_data, list):
-        return raw_data
+with col1:
+    st.page_link("app.py", label="🏠 Welcome", use_container_width=True)
+
+with col2:
+    st.page_link("frontend.py", label="⚡ Generator", use_container_width=True)
+
+with col3:
+    st.page_link("progresstracker.py", label="📈 Progress Tracker", use_container_width=True)
+
+st.divider()
+
+def format_ai_output_to_list(raw_data):
+    """Convert AI flashcard output into a list."""
 
     formatted_list = []
 
-    if isinstance(raw_data, dict):
+    if isinstance(raw_data, list):
+        formatted_list = raw_data
 
-        for i in range(1, 100):
+    elif isinstance(raw_data, dict):
 
-            question = (
-                raw_data.get(f"Question {i}")
-                or raw_data.get(f"tion {i}")
-            )
+        for i in range(1, 21):
 
+            question = raw_data.get(f"Question {i}")
             answer = raw_data.get(f"Answer {i}")
 
-            if question and answer:
+            if question is not None and answer is not None:
                 formatted_list.append({
                     "question": question,
                     "answer": answer
@@ -39,15 +47,13 @@ def format_ai_output_to_list(raw_data):
 
 def show_my_flashcards(data):
 
-    # Convert whatever the AI gave us into:
-    # [
-    #   {"question": "...", "answer": "..."},
-    #   ...
-    # ]
-
     clean_data = format_ai_output_to_list(data)
 
-    # Convert Python list -> JSON
+    if not clean_data:
+        st.error("No flashcards were generated.")
+        st.write("Raw data:", data)
+        return
+
     json_string = json.dumps(clean_data)
 
     html = """
@@ -309,22 +315,18 @@ FLASHCARDS_DATA
 
     function displayCard() {
 
-        const card =
-            flashcards[currentCard];
+        if (flashcards.length === 0) {
+            questionElement.textContent = "No flashcards available.";
+            answerElement.textContent = "";
+            return;
+        }
 
+        const card = flashcards[currentCard];
 
-        questionElement.textContent =
-            card.question;
+        questionElement.textContent = card.question;
+        answerElement.textContent = card.answer;
 
-
-        answerElement.textContent =
-            card.answer;
-
-
-        flashcardElement.classList.remove(
-            "is-flipped"
-        );
-
+        flashcardElement.classList.remove("is-flipped");
     }
 
 
@@ -379,10 +381,4 @@ if "flashcards" in st.session_state:
 
     show_my_flashcards(
         st.session_state.flashcards
-    )
-
-st.page_link(
-    "app.py",
-    label="← Back to Library",
-    icon="📚"
     )
