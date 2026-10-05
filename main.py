@@ -1,4 +1,4 @@
-from langchain.agents import create_agent
+from langchain.agents import create_tool_calling_agent as create_agent
 from langchain_core.tools import tool
 from dotenv import load_dotenv
 import os
