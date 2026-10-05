@@ -1,6 +1,6 @@
 streamlit
 supabase
 python-dotenv
-langchain==0.1.0
-langchain-core==0.1.10
-langchain-openai==0.0.2
+langchain==1.4.0
+langchain-core
+langchain-openai
