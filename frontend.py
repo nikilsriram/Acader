@@ -1,5 +1,21 @@
 import streamlit as st
 from main import generate_test_from_image, generate_flashcards_from_image, generate_notes_from_image
+st.markdown(
+    """
+    <style>
+    div[data-testid="stStatusWidget"],
+    .stAppViewerFooter,
+    div[class*="ViewerBadge"],
+    div[class*="viewerBadge"],
+    [data-testid="stActionButton"],
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 if not st.session_state.get("user_id"):
     st.warning("Please log in to view this page.")

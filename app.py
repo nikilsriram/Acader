@@ -4,6 +4,22 @@ from dotenv import load_dotenv
 import os
 import ast
 import json
+st.markdown(
+    """
+    <style>
+    div[data-testid="stStatusWidget"],
+    .stAppViewerFooter,
+    div[class*="ViewerBadge"],
+    div[class*="viewerBadge"],
+    [data-testid="stActionButton"],
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.set_page_config(layout="wide")
 

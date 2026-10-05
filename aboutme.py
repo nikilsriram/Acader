@@ -1,6 +1,23 @@
 import streamlit as st
 import base64
 
+st.markdown(
+    """
+    <style>
+    div[data-testid="stStatusWidget"],
+    .stAppViewerFooter,
+    div[class*="ViewerBadge"],
+    div[class*="viewerBadge"],
+    [data-testid="stActionButton"],
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 1. Force the page to wide layout
 st.set_page_config(layout="wide", page_title="Acader")
 

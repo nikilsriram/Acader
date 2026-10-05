@@ -1,6 +1,22 @@
 import streamlit as st
 import json
 
+st.markdown(
+    """
+    <style>
+    div[data-testid="stStatusWidget"],
+    .stAppViewerFooter,
+    div[class*="ViewerBadge"],
+    div[class*="viewerBadge"],
+    [data-testid="stActionButton"],
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 if not st.session_state.get("user_id"):
     st.warning("Please log in to view this page.")
     st.page_link("app.py", label="Go to Login")

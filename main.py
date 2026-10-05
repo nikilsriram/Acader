@@ -6,6 +6,7 @@ import base64
 import json
 from langchain_openai import ChatOpenAI
 
+
 load_dotenv()
 
 

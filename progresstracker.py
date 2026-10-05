@@ -2,6 +2,22 @@ import streamlit as st
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
+st.markdown(
+    """
+    <style>
+    div[data-testid="stStatusWidget"],
+    .stAppViewerFooter,
+    div[class*="ViewerBadge"],
+    div[class*="viewerBadge"],
+    [data-testid="stActionButton"],
+    footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # -----------------------------
 # LOGIN CHECK
