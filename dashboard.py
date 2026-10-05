@@ -1,4 +1,7 @@
 import streamlit as st
+from inject_analytics import inject_ga
+
+inject_ga()
 
 pg = st.navigation([
     st.Page("layout.py", title="Layout"),
