@@ -23,7 +23,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="Acader", page_icon="./gem.jpeg")
 
 with open("style.css", "r", encoding="utf-8") as f:
     css = f.read()
