@@ -21,7 +21,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Login/Sign Up", page_icon="./gem.jpeg")
 
 
 load_dotenv()
@@ -548,8 +548,6 @@ def main_app(user_email, user_id):
         st.warning("Please log in to view this page.")
         st.page_link("app.py", label="Go to Login")
         st.stop()
-
-    st.title("📝 Your Study Notes")
 
     if "notes" in st.session_state and st.session_state.notes:
         raw_text = str(st.session_state.notes)

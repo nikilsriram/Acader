@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Contact Us", page_icon="./gem.jpeg")
 st.markdown(
     """
     <style>

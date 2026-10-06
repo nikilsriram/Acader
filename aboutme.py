@@ -19,7 +19,7 @@ st.markdown(
 )
 
 # 1. Force the page to wide layout
-st.set_page_config(layout="wide", page_title="Acader")
+st.set_page_config(layout="wide", page_title="Acader", page_icon="./gem.jpeg")
 
 
 # Load your image
