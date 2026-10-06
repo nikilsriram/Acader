@@ -23,13 +23,13 @@ st.markdown(
 # LOGIN CHECK
 # -----------------------------
 
-if not st.session_state.get("user_id") and not st.session_state.get("flashcards"):
+access_token = st.session_state.get("access_token")
+refresh_token = st.session_state.get("refresh_token")
+
+if not st.session_state.get("user_id") or not access_token or not refresh_token:
     st.warning("Please log in to view this page.")
     st.page_link("app.py", label="Go to Login")
     st.stop()
-
-user_id = st.session_state.user_id
-
 
 load_dotenv()
 
@@ -37,6 +37,27 @@ url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(url, key)
+
+try:
+    auth_response = supabase.auth.set_session(access_token, refresh_token)
+
+    if not auth_response or not auth_response.user or not auth_response.session:
+        raise ValueError("Session could not be restored.")
+
+    user_id = str(auth_response.user.id)
+    st.session_state.user_id = user_id
+    st.session_state.user_email = auth_response.user.email
+    st.session_state.access_token = auth_response.session.access_token
+    st.session_state.refresh_token = auth_response.session.refresh_token
+
+except Exception:
+    for key_name in ("user_id", "user_email", "access_token", "refresh_token"):
+        st.session_state.pop(key_name, None)
+    st.warning("Your session has expired. Please log in again.")
+    st.page_link("app.py", label="Go to Login")
+    st.stop()
+
+
 
 
 col1, col2, col3 = st.columns(3)

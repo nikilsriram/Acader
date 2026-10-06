@@ -325,15 +325,37 @@ if "user_email" not in st.session_state:
 if "user_id" not in st.session_state:
     st.session_state.user_id = None
 
+if "access_token" not in st.session_state:
+    st.session_state.access_token = None
+if "refresh_token" not in st.session_state:
+    st.session_state.refresh_token = None
+
 
 # Silent Token Session Recovery across browser refreshes
-try:
-    session = supabase.auth.get_session()
-    if session and hasattr(session, 'user') and session.user:
-        st.session_state.user_email = session.user.email
-        st.session_state.user_id = session.user.id
-except Exception:
-    pass
+access_token = st.session_state.get("access_token")
+refresh_token = st.session_state.get("refresh_token")
+
+if access_token and refresh_token:
+    try:
+        auth_data = supabase.auth.set_session(
+            access_token,
+            refresh_token
+        )
+
+        if auth_data.user and auth_data.session:
+            st.session_state.user_email = auth_data.user.email
+            st.session_state.user_id = str(auth_data.user.id)
+            st.session_state.access_token = auth_data.session.access_token
+            st.session_state.refresh_token = auth_data.session.refresh_token
+        else:
+            st.session_state.user_email = None
+            st.session_state.user_id = None
+
+    except Exception:
+        st.session_state.user_email = None
+        st.session_state.user_id = None
+        st.session_state.access_token = None
+        st.session_state.refresh_token = None
 
 
 def sign_up(email, password):
@@ -345,9 +367,11 @@ def sign_up(email, password):
 def sign_in(email, password):
     try:
         auth_data = supabase.auth.sign_in_with_password({"email": email, "password": password})
-        if auth_data and auth_data.user:
+        if auth_data and auth_data.user and auth_data.session:
             st.session_state.user_email = auth_data.user.email
-            st.session_state.user_id = auth_data.user.id
+            st.session_state.user_id = str(auth_data.user.id)
+            st.session_state.access_token = auth_data.session.access_token
+            st.session_state.refresh_token = auth_data.session.refresh_token
             st.success("Welcome back!")
             st.rerun()
     except Exception as e:
@@ -356,14 +380,24 @@ def sign_in(email, password):
 def sign_out():
     try:
         supabase.auth.sign_out()
+    except Exception as e:
+        st.warning(f"Logout request failed: {e}")
+    finally:
+        st.session_state.access_token = None
+        st.session_state.refresh_token = None
         st.session_state.user_email = None
         st.session_state.user_id = None
-        st.session_state.pop("notes", None)
-        st.session_state.pop("test", None)
-        st.session_state.pop("flashcards", None)
+
+        for key in (
+            "notes",
+            "test",
+            "flashcards",
+            "input_image",
+            "generation_type",
+        ):
+            st.session_state.pop(key, None)
+
         st.rerun()
-    except Exception as e:
-        st.error(f"Logout failed: {e}")
 
 
 def main_app(user_email, user_id):
@@ -515,7 +549,7 @@ def main_app(user_email, user_id):
         st.page_link("app.py", label="Go to Login")
         st.stop()
 
-        st.title("📝 Your Study Notes")
+    st.title("📝 Your Study Notes")
 
     if "notes" in st.session_state and st.session_state.notes:
         raw_text = str(st.session_state.notes)
