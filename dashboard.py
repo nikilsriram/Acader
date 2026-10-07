@@ -1,6 +1,10 @@
 import streamlit as st
 from inject_analytics import inject_ga
 
+st.set_page_config(
+    page_title="Acader",
+    page_icon="./gem.jpeg",  # Optional: adds a browser tab favicon
+)
 inject_ga()
 
 pg = st.navigation([
