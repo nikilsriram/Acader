@@ -2,6 +2,8 @@ import streamlit as st
 from main import generate_flashcards_from_image, generate_test_from_image, generate_notes_from_image
 import time
 
+print(st.session_state.difficulty)
+
 st.markdown(
     """
     <style>

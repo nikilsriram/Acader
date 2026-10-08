@@ -1,4 +1,14 @@
 import streamlit as st
+
+if "show_popup" not in st.session_state:
+    st.session_state.show_popup = False
+if "difficulty" not in st.session_state:
+    st.session_state.difficulty = "Medium"
+if "highlighted" not in st.session_state:
+    st.session_state.highlighted = "None"
+if "number_of_questions" not in st.session_state:
+    st.session_state.number_of_questions = 10
+
 from main import generate_test_from_image, generate_flashcards_from_image, generate_notes_from_image
 st.markdown(
     """
@@ -16,6 +26,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+helloWorld = False
+
 
 if not st.session_state.get("user_id"):
     st.warning("Please log in to view this page.")
@@ -304,11 +317,49 @@ if st.session_state.camera_active:
         test_col, flashcard_col, notes_col = st.columns(3)
 
         with test_col:
+            @st.dialog("Test Settings")
+            def feedback_modal():
+                if "number_of_questions_input" not in st.session_state:
+                    st.session_state.number_of_questions_input = str(
+                        st.session_state.number_of_questions
+                    )
+                st.text_input(
+        "Number of Questions:",
+        key="number_of_questions_input"
+    )
 
+
+                st.write(f"Difficulty of Questions: **{st.session_state.difficulty}**")
+
+                # BUG FIX 2: Create columns ONLY ONCE
+                col6, col7, col8, col9 = st.columns(4)
+
+                with col6:
+                    if st.button("Easy", use_container_width=True, type="secondary"):
+                        st.session_state.difficulty = "Easy"
+                        st.session_state.active_button = "Button 1"
+                with col7:
+                    if st.button("Medium", use_container_width=True):
+                        st.session_state.difficulty = "Medium"
+                with col8:
+                    if st.button("Hard", use_container_width=True):
+                        st.session_state.difficulty = "Hard"
+                with col9:
+                    if st.button("Extremely Hard", use_container_width=True):
+                        st.session_state.difficulty = "Extremely Hard"
+                if st.button("Submit"):
+                    st.session_state.number_of_questions = int(
+                        st.session_state.number_of_questions_input
+                    )
+
+                    st.session_state.input_image = picture
+                    st.session_state.generation_type = "test"
+                    st.switch_page("loading.py")
             if st.button("Generate Test using Photo"):
-                st.session_state.input_image = picture
-                st.session_state.generation_type = "test"
-                st.switch_page("loading.py")
+                def openpopup():
+                    st.session_state.show_popup = True
+                    feedback_modal()
+                openpopup()
 
         with flashcard_col:
 
@@ -348,11 +399,50 @@ if uploaded_file:
     test_col, flashcard_col, notes_col = st.columns(3)
 
     with test_col:
+            @st.dialog("Test Settings")
+            def feedback_modal():
+                if "number_of_questions_input" not in st.session_state:
+                    st.session_state.number_of_questions_input = str(
+                        st.session_state.number_of_questions
+                    )
+                st.text_input(
+        "Number of Questions:",
+        key="number_of_questions_input"
+                )
 
-        if st.button("Generate Test using Uploaded File"):
-            st.session_state.input_image = uploaded_file
-            st.session_state.generation_type = "test"
-            st.switch_page("loading.py")
+
+                st.write(f"Difficulty of Questions: **{st.session_state.difficulty}**")
+
+                # BUG FIX 2: Create columns ONLY ONCE
+                col6, col7, col8, col9 = st.columns(4)
+
+                with col6:
+                    if st.button("Easy", use_container_width=True, type="secondary"):
+                        st.session_state.difficulty = "Easy"
+                        st.session_state.active_button = "Button 1"
+                with col7:
+                    if st.button("Medium", use_container_width=True):
+                        st.session_state.difficulty = "Medium"
+                with col8:
+                    if st.button("Hard", use_container_width=True):
+                        st.session_state.difficulty = "Hard"
+                with col9:
+                    if st.button("Extremely Hard", use_container_width=True):
+                        st.session_state.difficulty = "Extremely Hard"
+                if st.button("Submit"):
+                    st.session_state.number_of_questions = int(
+                        st.session_state.number_of_questions_input
+                    )
+
+                    st.session_state.input_image = uploaded_file
+                    st.session_state.generation_type = "test"
+                    st.switch_page("loading.py")
+            if st.button("Generate Test using Uploaded File"):
+                def openpopup():
+                    st.session_state.show_popup = True
+                    feedback_modal()
+                openpopup()
+                      
 
 
     with flashcard_col:
@@ -368,6 +458,5 @@ if uploaded_file:
             st.session_state.input_image = uploaded_file
             st.session_state.generation_type = "notes"
             st.switch_page("loading.py")
-
 
 

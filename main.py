@@ -5,9 +5,11 @@ import os
 import base64
 import json
 from langchain_openai import ChatOpenAI
+import streamlit as st
 
 
 load_dotenv()
+print(st.session_state.number_of_questions)
 
 
 def encode_image_to_base64(uploaded_file):
@@ -35,14 +37,24 @@ subagent = create_agent(
 )
 
 
+# 1. Keep the decorator description general so Python doesn't lock values at startup
 @tool(
     "generate_test",
-    description="""You are a test-generation specialist.
+    description="Generates a customized multiple-choice, true/false, and short-answer test based on user study notes."
+)
+def generate_test(query: str):
+    # 2. Safely grab the current user inputs at RUNTIME, not compile time
+    num_mcqs = int(st.session_state.get("number_of_questions", 10))
+    difficulty = st.session_state.get("difficulty", "Medium")
 
-When given study notes, generate the actual test.
+    print(num_mcqs)
 
-Generate:
-- 10 multiple-choice questions
+    # 3. Construct the exact prompt structure inside the function execution block
+    dynamic_prompt = f"""You are a test-generation specialist.
+When given study notes, generate the actual test based ONLY on information visible in the query.
+
+Generate exactly:
+- {num_mcqs} multiple-choice questions
 - 5 true/false questions
 - 5 short-answer questions
 
@@ -50,8 +62,10 @@ For each multiple-choice question:
 - Provide exactly 4 answer choices.
 - One choice must be correct.
 - The other 3 choices must be incorrect but plausible distractors.
-- Do not make the correct answer obviously longer, shorter, or more detailed than the distractors.
 - Include the correct answer in the "correct_answer" field.
+
+Make the difficulty based on:
+- {difficulty}
 
 For true/false questions:
 - Provide only the statement.
@@ -62,10 +76,9 @@ For short-answer questions:
 - Include the expected answer in the "correct_answer" field.
 
 Return ONLY valid JSON in this exact structure:
-
-{
+{{
     "multiple_choice": [
-        {
+        {{
             "question": "Question text",
             "choices": [
                 "Choice A",
@@ -74,40 +87,42 @@ Return ONLY valid JSON in this exact structure:
                 "Choice D"
             ],
             "correct_answer": "Choice B"
-        }
+        }}
     ],
     "true_false": [
-        {
+        {{
             "question": "Statement",
             "correct_answer": true
-        }
+        }}
     ],
     "short_answer": [
-        {
+        {{
             "question": "Question text",
             "correct_answer": "Expected answer"
-        }
+        }}
     ]
-}
+}}
 
-The JSON must contain exactly 10 multiple-choice questions, 5 true/false questions, and 5 short-answer questions.
-
-Base all questions and answers only on the provided study notes.
+The JSON must contain exactly {num_mcqs} multiple-choice questions, 5 true/false questions, and 5 short-answer questions.
 Do not add unsupported information.
 Do not include markdown or any text outside the JSON.
+
+User Notes/Context:
+{query}
 """
-)
-def generate_test(query: str):
+
+    # 4. Invoke your subagent using the dynamically built prompt
     result = subagent.invoke({
         "messages": [
             {
                 "role": "user",
-                "content": query
+                "content": dynamic_prompt
             }
         ]
     })
 
     return result["messages"][-1].content
+
 
 
 @tool(
@@ -219,8 +234,15 @@ main_agent = create_agent(
 
 
 
+import json
+import streamlit as st
+
 def generate_test_from_image(uploaded_file):
     base64_image, mime_type = encode_image_to_base64(uploaded_file)
+    
+    # Safely convert the user's selected string input to an integer for validation
+    num_mcqs = int(st.session_state.get("number_of_questions", 10))
+    print(num_mcqs)
 
     result = subagent.invoke({
         "messages": [
@@ -229,11 +251,11 @@ def generate_test_from_image(uploaded_file):
                 "content": [
                     {
                         "type": "text",
-                        "text": """Look carefully at this handwritten study-notes image.
+                        "text": f"""Look carefully at this handwritten study-notes image.
 Generate a test based ONLY on information visible in the image.
 
 Generate exactly:
-- 10 multiple-choice questions, each with 4 choices
+- {num_mcqs} multiple-choice questions, each with 4 choices
 - 5 true/false questions
 - 5 short-answer questions
 
@@ -241,30 +263,32 @@ Each question must include its correct_answer.
 For true/false, correct_answer must be a boolean.
 Do not invent information.
 
+Target Difficulty Level: {st.session_state.get("difficulty", "Medium")}
+
 Return ONLY valid JSON in this structure:
-{
+{{
     "multiple_choice": [
-        {
+        {{
             "question": "Question",
             "choices": ["A", "B", "C", "D"],
             "correct_answer": "A"
-        }
+        }}
     ],
     "true_false": [
-        {
+        {{
             "question": "Statement",
             "correct_answer": true
-        }
+        }}
     ],
     "short_answer": [
-        {
+        {{
             "question": "Question",
             "correct_answer": "Answer"
-        }
+        }}
     ]
-}
+}}
 
-Include exactly 10, 5, and 5 questions respectively.
+Include exactly {num_mcqs}, 5, and 5 questions respectively.
 Do not include Markdown or explanations."""
                     },
                     {
@@ -306,9 +330,9 @@ Do not include Markdown or explanations."""
     except json.JSONDecodeError as e:
         raise ValueError(f"The model returned invalid JSON: {e}") from e
 
-    # Validate the expected sections and counts.
+    # Validate the expected sections and counts dynamically.
     expected_counts = {
-        "multiple_choice": 10,
+        "multiple_choice": num_mcqs,
         "true_false": 5,
         "short_answer": 5,
     }
@@ -354,7 +378,6 @@ Do not include Markdown or explanations."""
             raise ValueError("A short-answer question has an invalid structure.")
 
     return test_data
-
 
 def generate_flashcards_from_image(uploaded_file):
     base64_image, mime_type = encode_image_to_base64(uploaded_file)

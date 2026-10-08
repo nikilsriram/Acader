@@ -447,7 +447,6 @@ def main_app(user_email, user_id):
     if st.button("Save All Progress", type="primary"):
         saved_items = []
         has_errors = False
-
         # 1. Inspect Session State for background Notes
                 # 1. Inspect Session State for background Notes
         if "notes" in st.session_state and st.session_state.notes:
