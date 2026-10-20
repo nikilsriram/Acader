@@ -36,7 +36,8 @@ pg = st.navigation([
     st.Page("aboutme.py", title="About Me", url_path="/aboutme"),
     st.Page("progresstracker.py", title="Progress Tracker", url_path="/progress"),
     st.Page("faq.py", title="Frequently Asked Questions", url_path="/faq"),
-    st.Page("contact.py", title="Contact Us", url_path="/contact")
+    st.Page("contact.py", title="Contact Us", url_path="/contact"),
+    st.Page("deck.py", title="Decks", url_path='/deck')
 ])
 
 pg.run()

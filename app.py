@@ -4,6 +4,13 @@ from dotenv import load_dotenv
 import os
 import ast
 import json
+
+# Global Authentication States Tracker
+if "user_email" not in st.session_state:
+    st.session_state.user_email = None
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
+    
 st.markdown(
     """
     <style>
@@ -21,6 +28,55 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# Put this OUTSIDE main_app(), above the router
+@st.dialog("Create a Shareable Passcode")
+def feedback_modal(user_id, note_id):
+    st.write("Create a passcode to share your study set.")
+
+    with st.form("share_form"):
+        deckname = st.text_input(
+            "Choose a username",
+            placeholder="BIOLOGYREVIEW"
+        )
+        password = st.text_input(
+            "Choose a passcode",
+            placeholder="MYSECRET123",
+            type="password"
+        )
+        submitted = st.form_submit_button("Create Passcode")
+
+    if submitted:
+        if note_id is None:
+            st.error("No saved note ID found. Click 'Save All Progress' first.")
+            return
+
+        clean_password = password.strip().upper()
+        clean_deckname = deckname.strip().upper()
+
+        if not clean_password:
+            st.error("Please enter a passcode.")
+        elif not st.session_state.get("access_token"):
+            st.error("Please log in again before creating a passcode.")
+        else:
+            try:
+                # 🛠️ FIX: Use the global 'supabase' client that is already logged in,
+                # instead of creating a fresh user_supabase instance.
+                supabase.table("shareable_set").insert({
+                    "password": clean_password,
+                    "deckname": clean_deckname,
+                    "user_id": user_id,
+                    "note_id": note_id,
+                }).execute()
+
+                st.success("Passcode created!")
+                st.page_link("deck.py", label="Go to deck")
+
+            except Exception as e:
+                st.error(f"Please enter a different password. This password is taken")
+
+
+
 st.set_page_config(layout="wide", page_title="Login/Sign Up", page_icon="./gem.jpeg")
 
 
@@ -29,301 +85,302 @@ supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key)
 
+if "saved_note_id" not in st.session_state:
+    st.session_state.saved_note_id = None
+
+if "unlocked_id" not in st.session_state:
+    st.session_state.unlocked_id = None
+if not (st.session_state.get("user_email") and st.session_state.get("user_id")):
+    st.html(f"""
+    <html>
+
+    <head>
+    <style>
+
+    html, body {{
+        background-color: #050505 !important;
+        color: white !important;
+    }}
+
+    [data-testid="stAppViewContainer"] {{
+        background-color: #050505 !important;
+    }}
+
+    [data-testid="stMain"] {{
+        background-color: #050505 !important;
+    }}
+
+    [data-testid="stHeader"], 
+    [data-testid="stStatusWidget"], 
+    #MainMenu {{
+        display: none !important;
+        height: 0 !important;
+    }}
 
 
-st.html(f"""
-<html>
-
-<head>
-<style>
-
- html, body {{
-    background-color: #050505 !important;
-    color: white !important;
-}}
-
-[data-testid="stAppViewContainer"] {{
-    background-color: #050505 !important;
-}}
-
-[data-testid="stMain"] {{
-    background-color: #050505 !important;
-}}
-
-[data-testid="stHeader"], 
-[data-testid="stStatusWidget"], 
-#MainMenu {{
-    display: none !important;
-    height: 0 !important;
-}}
-
-
-header {{
-            position: fixed;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            padding: 0 5%;
-            background-color: transparent;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }}
-
-        .logo {{
-            font-size: 1.8rem; /* Scaled down further from 2.4rem */
-            color: #b74b4b !important;
-            font-weight: 800;
-            cursor: pointer;
-            transition: 0.5s ease;
-            text-decoration: none;
-        }}
-
-        .logo:hover {{
-            transform: scale(1.05);
-        }}
-
-        nav {{
-            display: flex;
-            align-items: center;
-            gap: 1.8rem; /* Tightened gap spacing */
-        }}
-
-        nav a {{
-            font-size: 1.1rem; /* Scaled down further from 1.3rem */
-            color: white !important;
-            font-weight: 500;
-            transition: 0.3s ease;
-            border-bottom: 2px solid transparent; /* Lightened border line scale */
-            white-space: nowrap;
-            text-decoration: none;
-        }}
-
-        nav a:hover,
-        nav a.active {{
-            color: #b74b4b !important;
-            border-bottom: 2px solid #b74b4b;
-        }}
-
-        @media (max-width: 995px) {{
-            nav {{
-                position: absolute;
-                display: none;
-                top: 0;
-                right: 0;
-                width: 40%;
-                border-left: 3px solid #b74b4b;
-                border-bottom: 3px solid #b74b4b;
-                border-bottom-left-radius: 2rem;
-                padding: 1rem;
-                background-color: #161616;
-                border-top: 0.1rem solid rgba(0, 0, 0, 0.1);
+    header {{
+                position: fixed;
+                top: 20px;
+                left: 0;
+                width: 100%;
+                height: 80px;
+                padding: 0 5%;
+                background-color: transparent;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                z-index: 100;
             }}
 
-            nav .active {{
-                display: block;
+            .logo {{
+                font-size: 1.8rem; /* Scaled down further from 2.4rem */
+                color: #b74b4b !important;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.5s ease;
+                text-decoration: none;
+            }}
+
+            .logo:hover {{
+                transform: scale(1.05);
+            }}
+
+            nav {{
+                display: flex;
+                align-items: center;
+                gap: 1.8rem; /* Tightened gap spacing */
             }}
 
             nav a {{
-                display: block;
-                font-size: 1.3rem; /* Scaled down mobile text */
-                margin: 1.5rem 0;
+                font-size: 1.1rem; /* Scaled down further from 1.3rem */
+                color: white !important;
+                font-weight: 500;
+                transition: 0.3s ease;
+                border-bottom: 2px solid transparent; /* Lightened border line scale */
+                white-space: nowrap;
+                text-decoration: none;
             }}
 
             nav a:hover,
             nav a.active {{
-                padding: 0.6rem;
-                border-radius: 0.5rem;
-                border-bottom: 0.4rem solid #b74b4b;
+                color: #b74b4b !important;
+                border-bottom: 2px solid #b74b4b;
             }}
-        }}
 
-         [data-testid="stElementContainer"], .element-container {{
-                    max-width: 100% !important;
-                    width: 100vw !important;
+            @media (max-width: 995px) {{
+                nav {{
+                    position: absolute;
+                    display: none;
+                    top: 0;
+                    right: 0;
+                    width: 40%;
+                    border-left: 3px solid #b74b4b;
+                    border-bottom: 3px solid #b74b4b;
+                    border-bottom-left-radius: 2rem;
+                    padding: 1rem;
+                    background-color: #161616;
+                    border-top: 0.1rem solid rgba(0, 0, 0, 0.1);
                 }}
-        
-                /* Make sure the iframe itself drops all borders and fills the space */
-                iframe {{
+
+                nav .active {{
                     display: block;
-                    width: 100vw !important;
-                    height: 100vh !important;
-                    border: none !important;
                 }}
-</style>
+
+                nav a {{
+                    display: block;
+                    font-size: 1.3rem; /* Scaled down mobile text */
+                    margin: 1.5rem 0;
+                }}
+
+                nav a:hover,
+                nav a.active {{
+                    padding: 0.6rem;
+                    border-radius: 0.5rem;
+                    border-bottom: 0.4rem solid #b74b4b;
+                }}
+            }}
+
+            [data-testid="stElementContainer"], .element-container {{
+                        max-width: 100% !important;
+                        width: 100vw !important;
+                    }}
+            
+                    /* Make sure the iframe itself drops all borders and fills the space */
+                    iframe {{
+                        display: block;
+                        width: 100vw !important;
+                        height: 100vh !important;
+                        border: none !important;
+                    }}
+    </style>
 
 
 
-</head>
-<body>
-<header>
-        <a href="#" class="logo">Acader</a>
+    </head>
+    <body>
+    <header>
+            <a href="#" class="logo">Acader</a>
 
-        <nav>
-            <a href="/">Home</a>
-            <a href="/aboutme">About Us</a>
-            <a href="/">Education</a>
-            <a href="/contact">Contact Us</a>
-            <a href="/login" class="active">Login/Sign up</a>
-        </nav>
-    </header>
-</body>
-</html>
-""")
-st.markdown("""
-<style>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/aboutme">About Us</a>
+                <a href="/">Education</a>
+                <a href="/contact">Contact Us</a>
+                <a href="/login" class="active">Login/Sign up</a>
+            </nav>
+        </header>
+    </body>
+    </html>
+    """)
+    st.markdown("""
+    <style>
 
-/* =========================
-   REGISTRATION / LOGIN PAGE
-   ========================= */
+    /* =========================
+    REGISTRATION / LOGIN PAGE
+    ========================= */
 
-/* Force the actual Streamlit app surfaces dark */
-html,
-body,
-[data-testid="stApp"],
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-[data-testid="stMainBlockContainer"] {
-    background: #050505 !important;
-    background-color: #050505 !important;
-    color: #ffffff !important;
-}
+    /* Force the actual Streamlit app surfaces dark */
+    html,
+    body,
+    [data-testid="stApp"],
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"] {
+        background: #050505 !important;
+        background-color: #050505 !important;
+        color: #ffffff !important;
+    }
 
-/* =========================
-   AUTH TEXT
-   ========================= */
+    /* =========================
+    AUTH TEXT
+    ========================= */
 
-[data-testid="stMain"] h1,
-[data-testid="stMain"] h2,
-[data-testid="stMain"] h3,
-[data-testid="stMain"] p,
-[data-testid="stMain"] label,
-[data-testid="stMain"] label p,
-[data-testid="stMain"] span {
-    color: #ffffff !important;
-}
+    [data-testid="stMain"] h1,
+    [data-testid="stMain"] h2,
+    [data-testid="stMain"] h3,
+    [data-testid="stMain"] p,
+    [data-testid="stMain"] label,
+    [data-testid="stMain"] label p,
+    [data-testid="stMain"] span {
+        color: #ffffff !important;
+    }
 
-/* Keep auth content centered */
-[data-testid="stMainBlockContainer"] {
-    max-width: 600px !important;
-    margin: 0 auto !important;
-    padding-top: 7rem !important;
-}
+    /* Keep auth content centered */
+    [data-testid="stMainBlockContainer"] {
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        padding-top: 7rem !important;
+    }
 
-/* =========================
-   TEXT INPUTS
-   ========================= */
+    /* =========================
+    TEXT INPUTS
+    ========================= */
 
-[data-testid="stTextInput"] input,
-[data-testid="stTextInput"] input:active,
-[data-testid="stTextInput"] input:focus {
-    background: #111111 !important;
-    background-color: #111111 !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
-    border: 1px solid #333333 !important;
-    border-radius: 12px !important;
-    caret-color: #ffffff !important;
-}
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextInput"] input:active,
+    [data-testid="stTextInput"] input:focus {
+        background: #111111 !important;
+        background-color: #111111 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        border: 1px solid #333333 !important;
+        border-radius: 12px !important;
+        caret-color: #ffffff !important;
+    }
 
-[data-testid="stTextInput"] input::placeholder {
-    color: #888888 !important;
-    -webkit-text-fill-color: #888888 !important;
-    opacity: 1 !important;
-}
+    [data-testid="stTextInput"] input::placeholder {
+        color: #888888 !important;
+        -webkit-text-fill-color: #888888 !important;
+        opacity: 1 !important;
+    }
 
-[data-testid="stTextInput"] input:focus {
-    border-color: #b74b4b !important;
-    box-shadow: 0 0 0 1px #b74b4b !important;
-}
+    [data-testid="stTextInput"] input:focus {
+        border-color: #b74b4b !important;
+        box-shadow: 0 0 0 1px #b74b4b !important;
+    }
 
-/* =========================
-   SELECTBOX
-   ========================= */
+    /* =========================
+    SELECTBOX
+    ========================= */
 
-[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background: #111111 !important;
-    background-color: #111111 !important;
-    border: 1px solid #333333 !important;
-    border-radius: 12px !important;
-}
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background: #111111 !important;
+        background-color: #111111 !important;
+        border: 1px solid #333333 !important;
+        border-radius: 12px !important;
+    }
 
-[data-testid="stSelectbox"] div[data-baseweb="select"] span,
-[data-testid="stSelectbox"] div[data-baseweb="select"] div {
-    color: #ffffff !important;
-}
+    [data-testid="stSelectbox"] div[data-baseweb="select"] span,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] div {
+        color: #ffffff !important;
+    }
 
-/* Dropdown */
-div[data-baseweb="popover"],
-div[data-baseweb="menu"] {
-    background: #111111 !important;
-    background-color: #111111 !important;
-}
+    /* Dropdown */
+    div[data-baseweb="popover"],
+    div[data-baseweb="menu"] {
+        background: #111111 !important;
+        background-color: #111111 !important;
+    }
 
-div[data-baseweb="menu"] li {
-    background: #111111 !important;
-    color: #ffffff !important;
-}
+    div[data-baseweb="menu"] li {
+        background: #111111 !important;
+        color: #ffffff !important;
+    }
 
-div[data-baseweb="menu"] li:hover {
-    background: #222222 !important;
-    color: #ffffff !important;
-}
+    div[data-baseweb="menu"] li:hover {
+        background: #222222 !important;
+        color: #ffffff !important;
+    }
 
-/* =========================
-   BUTTONS
-   ========================= */
+    /* =========================
+    BUTTONS
+    ========================= */
 
-[data-testid="stButton"] button {
-    width: 100% !important;
-    background: #111111 !important;
-    background-color: #111111 !important;
-    color: #b74b4b !important;
-    border: 1px solid #b74b4b !important;
-    border-radius: 25px !important;
-    font-weight: 700 !important;
-}
+    [data-testid="stButton"] button {
+        width: 100% !important;
+        background: #111111 !important;
+        background-color: #111111 !important;
+        color: #b74b4b !important;
+        border: 1px solid #b74b4b !important;
+        border-radius: 25px !important;
+        font-weight: 700 !important;
+    }
 
-[data-testid="stButton"] button p,
-[data-testid="stButton"] button span {
-    color: #b74b4b !important;
-}
+    [data-testid="stButton"] button p,
+    [data-testid="stButton"] button span {
+        color: #b74b4b !important;
+    }
 
-[data-testid="stButton"] button:hover {
-    background: #b74b4b !important;
-    background-color: #b74b4b !important;
-    border-color: #b74b4b !important;
-}
+    [data-testid="stButton"] button:hover {
+        background: #b74b4b !important;
+        background-color: #b74b4b !important;
+        border-color: #b74b4b !important;
+    }
 
-[data-testid="stButton"] button:hover p,
-[data-testid="stButton"] button:hover span {
-    color: #050505 !important;
-}
+    [data-testid="stButton"] button:hover p,
+    [data-testid="stButton"] button:hover span {
+        color: #050505 !important;
+    }
 
-/* =========================
-   ALERTS
-   ========================= */
+    /* =========================
+    ALERTS
+    ========================= */
 
-[data-testid="stAlert"] {
-    background: #111111 !important;
-    background-color: #111111 !important;
-    color: #ffffff !important;
-}
+    [data-testid="stAlert"] {
+        background: #111111 !important;
+        background-color: #111111 !important;
+        color: #ffffff !important;
+    }
 
-[data-testid="stAlert"] * {
-    color: #ffffff !important;
-}
+    [data-testid="stAlert"] * {
+        color: #ffffff !important;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """, unsafe_allow_html=True)
 
-# Global Authentication States Tracker
-if "user_email" not in st.session_state:
-    st.session_state.user_email = None
-if "user_id" not in st.session_state:
-    st.session_state.user_id = None
+
+
 
 if "access_token" not in st.session_state:
     st.session_state.access_token = None
@@ -401,10 +458,24 @@ def sign_out():
 
 
 def main_app(user_email, user_id):
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.page_link("app.py", label="Welcome", use_container_width=True)
+
+    with col2:
+        st.page_link("frontend.py", label="Generator", use_container_width=True)
+
+    with col3:
+        st.page_link("progresstracker.py", label="Progress Tracker", use_container_width=True)
+
+    with col4:
+        st.page_link("deck.py", label="Decks", use_container_width=True)
     st.title("Welcome Page")
     st.success(f"Welcome, {user_email}")
     st.write("You are logged in successfully! Make sure to download saved files as only the last thing you generated will show up!")
     st.write("Note: Saving and loading flashcards does not work at the moment!")
+    st.write("Save data to create a deck!")
 
     st.markdown(
         """
@@ -432,16 +503,6 @@ def main_app(user_email, user_id):
 }
 </style>
 """, unsafe_allow_html=True)
-
-    st.page_link(
-        "frontend.py",
-        label="Go to generator →",
-    )
-
-    st.page_link(
-            "progresstracker.py",
-            label="Go to progress tracker →",
-        )
     
     # --- MASTER SAVE BUTTON ---
     if st.button("Save All Progress", type="primary"):
@@ -454,12 +515,16 @@ def main_app(user_email, user_id):
                 # Force it to be saved as a clean text string layout directly
                 clean_note_text = str(st.session_state.notes)
 
-                supabase.table("notes").insert({
+                response = supabase.table("notes").insert({
                     "content": clean_note_text,
-                    "user_id": user_id
+                    "user_id": user_id,
                 }).execute()
-        
+                
+                if response.data:
+                    st.session_state.saved_note_id = response.data[0]["id"]
+                
                 saved_items.append("Notes")
+
             except Exception as e:
                 st.error(f"Failed to save Notes from background session: {e}")
                 has_errors = True
@@ -505,17 +570,36 @@ def main_app(user_email, user_id):
         elif not has_errors:
             st.warning("Nothing to save! Background states for notes, tests, or flashcards are currently empty.")
 
+    if st.session_state.get("notes", []):
+        if st.button("➕ Add to shareable deck"):
+            saved_note_id = st.session_state.get("saved_note_id")
+
+            if saved_note_id is None:
+                st.warning("Click 'Save All Progress' first to save your note.")
+            else:
+                feedback_modal(user_id, saved_note_id)               
+
     # --- MASTER LOAD BUTTON ---
     if st.button("Load Last Progress", type="secondary"):
         loaded_items = []
         
         try:
             # 1. Fetch ALL notes belonging to this user profile (No limits)
-            res_notes = supabase.table("notes").select("content").eq("user_id", user_id).order("id", desc=True).execute()
-            if res_notes.data and len(res_notes.data) > 0:
-                # Extract the raw text content string from the newest entry immediately!
-                raw_db_string = res_notes.data[0]["content"]
-                st.session_state.notes = str(raw_db_string)
+            res_notes = (
+                supabase.table("notes")
+                .select("id, content")
+                .eq("user_id", user_id)
+                .order("id", desc=True)
+                .limit(1)
+                .execute()
+            )
+
+            if res_notes.data:
+                saved_note = res_notes.data[0]
+
+                st.session_state.notes = str(saved_note["content"])
+                st.session_state.saved_note_id = saved_note["id"]
+
                 loaded_items.append("Notes")
 
             # 2. Load Test Results
